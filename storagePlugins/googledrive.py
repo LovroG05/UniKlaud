@@ -3,10 +3,11 @@ from pydrive.auth import GoogleAuth
 from pydrive.drive import GoogleDrive
 
 class GoogleDriveProvider(StorageProvider.StorageProvider):
-    def __init__(self, provider):
-        auth = self.getAuth()
-        self.drive = self.initialize(auth)
+    def __init__(self, provider, storageName):
+        self.auth = self.getAuth()
+        self.initialize(self.auth)
         self.provider = provider
+        self.storageName = storageName
 
     def getAuth(self):
         gauth = GoogleAuth()

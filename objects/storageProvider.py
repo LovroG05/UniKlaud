@@ -27,7 +27,10 @@ class StorageProvider:
         pass
 
     def getJsonData(self):
-        return {f"%s" % self.storageName: f"%s" % self.provider}
+        return {
+            "provider": self.provider,
+            "storagename": self.storageName
+        }
 
 
 
