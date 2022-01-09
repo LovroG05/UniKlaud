@@ -148,3 +148,4 @@ cython_debug/
 .idea/
 /client_secrets.json
 /mycreds.txt
+/dropbox.txt
