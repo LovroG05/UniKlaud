@@ -31,6 +31,3 @@ class StorageProvider:
             "provider": self.provider,
             "storagename": self.storageName
         }
-
-
-

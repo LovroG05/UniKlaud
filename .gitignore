@@ -147,3 +147,4 @@ cython_debug/
 # PyCharm
 .idea/
 /client_secrets.json
+/mycreds.txt
