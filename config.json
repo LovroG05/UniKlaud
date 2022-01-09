@@ -1,1 +1,1 @@
-{"mountedStorageObjects": {"provider": "googleDrive", "storagename": "gdrive"}}
+{"mountedStorageObjects": ["{\"provider\": \"googleDrive\", \"storagename\": \"gdrive\", \"size_bytes\": \"150000000000\"}", "{\"provider\": \"dropbox\", \"storagename\": \"dropbox\", \"size_bytes\": \"2000000000\"}"], "mainDriveName": "gdrive"}

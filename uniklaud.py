@@ -5,32 +5,43 @@ import packages.configurator as configurator
 import json
 import pyfiglet
 import colorama
+import storagePlugins.dropboxprovider as dropboxprovider
 
 
 class Uniklaud:
-    def __init__(self, mnt):
+    def __init__(self, mnt, maindrive):
         self.fs = Filesplit()
         self.split_size = 4000000
         self.tempPath = "/tmp/uniklaud"
         self.mountedStorageObjects = []
-        self.providers = ["googleDrive"]
+        self.providers = ["googleDrive", "dropbox"]
+        self.maindrive = maindrive
         self.loadMount(mnt)
 
     def loadMount(self, mnt):
         print(mnt)
         for i in mnt:
-            print(i)
             drive = json.loads(i)
             provider = drive["provider"]
-            print(provider)
             storagename = drive["storagename"]
-            print(storagename)
+            size = drive["size_bytes"]
             if provider == "googleDrive":
-                print("true")
-                self.mountedStorageObjects.append(googleDrive.GoogleDriveProvider(provider, storagename))
+                self.mountedStorageObjects.append(googleDrive.GoogleDriveProvider(provider, storagename, size))
+                print("Storage object mounted")
+            elif provider == "dropbox":
+                self.mountedStorageObjects.append(dropboxprovider.DropboxProvider(provider, storagename, size))
                 print("Storage object mounted")
             else:
                 print("Unknown storage provider")
+
+    def setMainDrive(self, drive):
+        self.maindrive = drive
+        configMaster = configurator.Configurator("config.json")
+        config = configMaster.get_config()
+        config["mainDriveName"] = drive
+        configMaster.write_config(config)
+        print("Main drive set to " + drive)
+        print(colorama.Fore.RED + "DO NOT ATTEMPT TO CHANGE IT!")
 
     def updateConfigMounted(self, value):
         configMaster = configurator.Configurator("config.json")
@@ -41,11 +52,20 @@ class Uniklaud:
         config["mountedStorageObjects"] = list
         configMaster.write_config(config)
 
-    def split(self, path):
-        self.fs.split(file=path, split_size=self.split_size, output_dir=self.tempPath)  # TODO
+    def split_cb(self, f, s):
+        print("file: {0}, size: {1}".format(f, s))
 
-    def merge(self):
-        self.fs.merge(input_dir=self.tempPath) # TODO
+    def merge_cb(self, f, s):
+        print("file: {0}, size: {1}".format(f, s))
+
+    def split(self, path):
+        self.fs.split(file=path, split_size=4000000, output_dir=self.tempPath, callback=self.split_cb)  # TODO
+        # TODO delete temp after upload
+
+    def merge(self, in_path, out_path):
+        # TODO download to temp
+        self.fs.merge(input_dir=in_path, output_file=out_path) # TODO
+        # TODO delete temp after merge
 
     def mountStorageObject(self, storageObject):
         self.mountedStorageObjects.append(storageObject)
@@ -55,9 +75,17 @@ class Uniklaud:
         self.mountedStorageObjects.pop(storageName)
         self.updateConfigMounted(self.mountedStorageObjects)
 
-    def mountStorage(self, storagename, provider):
+    def mountStorage(self, storagename, provider, size):
         if provider == "googleDrive":
-            self.mountStorageObject(googleDrive.GoogleDriveProvider(provider, storagename))
+            self.mountStorageObject(googleDrive.GoogleDriveProvider(provider, storagename, size))
+            print("Storage object mounted")
+        elif provider == "dropbox":
+            with open("dropbox.txt", "w") as f:
+                secret = input("Enter your dropbox secret: ")
+                f.write(secret)
+                f.close()
+                
+            self.mountStorageObject(dropboxprovider.DropboxProvider(provider, storagename, size))
             print("Storage object mounted")
         else:
             print("Unknown storage provider")
@@ -84,10 +112,12 @@ class UniklaudCLI:
     def print_commands(self):
         print("Available commands:")
         print("(0)  help")
-        print("(1)  mount <storageName> <provider>")
+        print("(1)  mount <storageName> <provider> <size[Bytes]>")
         print("(2)  unmount <storageName>")
         print("(3)  listmounted --provider <provider>")
-        print("(4)  quit")
+        print("(4)  maindrive <storageName>")
+        print("(98)  quit")
+        print("(99)  clear")
         print("\n\n\n")
 
     def mainLoop(self):
@@ -99,13 +129,16 @@ class UniklaudCLI:
 
             elif command.startswith("mount"):
                 args = command.split(" ")
-                self.mount(args[1], args[2])
+                self.mount(args[1], args[2], args[3])
 
             elif command == "unmount":
-                print("This command is not implemented yet")
+                print(colorama.Fore.RED + "This command is not implemented yet")
 
-            elif command == "listmounted":
+            elif command.startswith("listmounted"):
                 self.listmounted()
+
+            elif command.startswith("maindrive"):
+                self.maindrive(command.split(" ")[1])
 
             elif command == "quit":
                 print(colorama.Fore.RED + "Goodbye!")
@@ -115,12 +148,12 @@ class UniklaudCLI:
                 os.system('clear')
     
     # COMMAND FUNCTIONS
-    def mount(self, storagename, provider):
+    def mount(self, storagename, provider, size):
         usedproviders = self.uniklaud.getUsedStorageProviders()
         if provider in usedproviders:
             print("Storage provider already mounted")
         else:
-            self.uniklaud.mountStorage(storagename, provider)
+            self.uniklaud.mountStorage(storagename, provider, size)
 
         self.listmounted()
         
@@ -135,13 +168,20 @@ class UniklaudCLI:
 
 
     def listmounted(self):
-        print(colorama.Fore.YELLOW + "name -------- provider")
+        print(colorama.Fore.MAGENTA + "Main storage drive: " + self.uniklaud.maindrive)
+        print(colorama.Fore.YELLOW + "name -------- provider -------- size[Bytes]")
         for i in self.uniklaud.mountedStorageObjects:
-            print(colorama.Fore.CYAN + i.storageName + " -------- " + i.provider)
+            print(colorama.Fore.CYAN + i.storageName + " -------- " + i.provider + " -------- " + i.size_bytes)
+
+    def maindrive(self, storageName):
+        if self.uniklaud.maindrive == "":
+            self.uniklaud.setMainDrive(storageName)
+        else:
+            print(colorama.Fore.YELLOW + "Main drive already set")
 
 
 if __name__ == '__main__':
     configMaster = configurator.Configurator("config.json")
     config = configMaster.get_config()
-    uniklaud = Uniklaud(config["mountedStorageObjects"])
+    uniklaud = Uniklaud(config["mountedStorageObjects"], config["mainDriveName"])
     uniklaudCLI = UniklaudCLI(uniklaud)

@@ -2,11 +2,12 @@ import dropbox
 import objects.storageProvider as StorageProvider
 
 class DropboxProvider(StorageProvider.StorageProvider):
-    def __init__(self, provider, storageName):
+    def __init__(self, provider, storageName, size_bytes):
         self.dropbox = self.initialize(self.getAuth())
         self.dropbox.users_get_current_account()
         self.provider = provider
         self.storageName = storageName
+        self.size_bytes = size_bytes
 
     def getAuth(self):
         with open("dropbox.txt", "r") as f:
@@ -31,9 +32,3 @@ class DropboxProvider(StorageProvider.StorageProvider):
 
     def deleteFile(self, filename):
         self.dropbox.files_delete(filename)
-
-    def getJsonData(self):
-        return {
-            "provider": self.provider,
-            "storagename": self.storageName
-        }
