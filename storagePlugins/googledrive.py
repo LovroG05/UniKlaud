@@ -41,9 +41,27 @@ class GoogleDriveProvider(StorageProvider.StorageProvider):
 
     def getUsedB(self):
         return self.drive.GetAbout().get('quotaBytesUsed')
+
+    def getFileId(self, filename):
+        file_list = self.drive.ListFile({'q': "'root' in parents"}).GetList()
+        for file1 in file_list:
+            print('title: {}, id: {}'.format(file1['title'], file1['id']))
+            if filename == file1['title']:
+                return file1['id']
+        return "That file does not exist"
         
-    def downloadFile(self, file):
-        pass
+    def downloadFile(self, file, store_filename):
+        fileid = self.getFileId(file)
+        if fileid == "That file does not exist":
+            print("That file does not exist")
+        else:
+            file1 = self.drive.CreateFile({'id': fileid})
+            file1.GetContentFile(store_filename)
 
     def deleteFile(self, file):
-        pass
+        fileid = self.getFileId(file)
+        if fileid == "That file does not exist":
+            print("That file does not exist")
+        else:
+            file1 = self.drive.CreateFile({'id': fileid})
+            file1.Delete()

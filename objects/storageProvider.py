@@ -22,7 +22,7 @@ class StorageProvider:
     def uploadFile(self, file_path, filename):
         pass
 
-    def downloadFile(self, file):
+    def downloadFile(self, file, store_filename):
         pass
 
     def deleteFile(self, file):

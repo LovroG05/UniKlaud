@@ -65,9 +65,10 @@ class Splitter:
             print(colorama.Fore.YELLOW + "Deleting file: " + filetd)
             os.remove(filetd)
 
-        with open(self.tmppath + "/main.json", "w") as f:
-            f.write("{}")
-            f.close()
+        if not os.path.exists(self.tmppath + "/main.json"):
+            with open(self.tmppath + "/main.json", "w") as f:
+                f.write("{}")
+                f.close()
 
         config = ""
         files = []
@@ -90,7 +91,9 @@ class Splitter:
         for drive in self.uniklaud.mountedStorageObjects:
             if drive.storageName == maindrive:
                 print(colorama.Fore.GREEN + "Uploading to maindrive")
+                drive.deleteFile("main.json")
                 drive.uploadFile(self.tmppath + "/main.json", "main.json")
+
 
         
 

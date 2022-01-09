@@ -17,6 +17,14 @@ class Uniklaud:
         self.providers = ["googleDrive", "dropbox"]
         self.maindrive = maindrive
         self.loadMount(mnt)
+        if self.maindrive != "":
+            if self.mountedStorageObjects != []:
+                self.getMainJson()
+
+    def getMainJson(self):
+        for i in self.mountedStorageObjects:
+            if i.storageName == self.maindrive:
+                i.downloadFile("main.json", "tmp/main.json")
 
     def loadMount(self, mnt):
         print(mnt)
