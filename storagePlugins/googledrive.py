@@ -1,11 +1,11 @@
 import objects.storageProvider as StorageProvider
-from pydrive.auth import GoogleAuth
-from pydrive.drive import GoogleDrive
+from pydrive2.auth import GoogleAuth
+from pydrive2.drive import GoogleDrive
 
 class GoogleDriveProvider(StorageProvider.StorageProvider):
     def __init__(self, provider, storageName, size_bytes):
         self.auth = self.getAuth()
-        self.initialize(self.auth)
+        self.drive = self.initialize(self.auth)
         self.provider = provider
         self.storageName = storageName
         self.size_bytes = size_bytes
@@ -37,6 +37,9 @@ class GoogleDriveProvider(StorageProvider.StorageProvider):
         file1 = self.drive.CreateFile({'title': filename})
         file1.SetContentFile(file_path)
         file1.Upload()
+
+    def getUsedB(self):
+        return self.drive.GetAbout().get('quotaBytesUsed')
         
     def downloadFile(self, file):
         pass

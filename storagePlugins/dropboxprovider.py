@@ -8,6 +8,7 @@ class DropboxProvider(StorageProvider.StorageProvider):
         self.provider = provider
         self.storageName = storageName
         self.size_bytes = size_bytes
+        self.dropbox.get_space_usage()
 
     def getAuth(self):
         with open("dropbox.txt", "r") as f:
@@ -29,6 +30,9 @@ class DropboxProvider(StorageProvider.StorageProvider):
             meth, res = self.dropbox.files_download( "/" + filename)
             f.write(res.content)
             f.close()
+
+    def getUsedB(self):
+        return self.dropbox.users_get_space_usage().used
 
     def deleteFile(self, filename):
         self.dropbox.files_delete(filename)

@@ -149,3 +149,5 @@ cython_debug/
 /client_secrets.json
 /mycreds.txt
 /dropbox.txt
+
+/Ultimaker_Cura-4.12.1.AppImage

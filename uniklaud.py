@@ -1,4 +1,3 @@
-from fsplit.filesplit import Filesplit
 import sys, os
 import storagePlugins.googledrive as googleDrive
 import packages.configurator as configurator
@@ -10,9 +9,8 @@ import storagePlugins.dropboxprovider as dropboxprovider
 
 class Uniklaud:
     def __init__(self, mnt, maindrive):
-        self.fs = Filesplit()
         self.split_size = 4000000
-        self.tempPath = "/tmp/uniklaud"
+        self.tempPath = "tmp"
         self.mountedStorageObjects = []
         self.providers = ["googleDrive", "dropbox"]
         self.maindrive = maindrive
@@ -43,6 +41,9 @@ class Uniklaud:
         print("Main drive set to " + drive)
         print(colorama.Fore.RED + "DO NOT ATTEMPT TO CHANGE IT!")
 
+    def getMainDrive(self):
+        return self.maindrive
+
     def updateConfigMounted(self, value):
         configMaster = configurator.Configurator("config.json")
         config = configMaster.get_config()
@@ -51,21 +52,6 @@ class Uniklaud:
             list.append(json.dumps(i.getJsonData()))
         config["mountedStorageObjects"] = list
         configMaster.write_config(config)
-
-    def split_cb(self, f, s):
-        print("file: {0}, size: {1}".format(f, s))
-
-    def merge_cb(self, f, s):
-        print("file: {0}, size: {1}".format(f, s))
-
-    def split(self, path):
-        self.fs.split(file=path, split_size=4000000, output_dir=self.tempPath, callback=self.split_cb)  # TODO
-        # TODO delete temp after upload
-
-    def merge(self, in_path, out_path):
-        # TODO download to temp
-        self.fs.merge(input_dir=in_path, output_file=out_path) # TODO
-        # TODO delete temp after merge
 
     def mountStorageObject(self, storageObject):
         self.mountedStorageObjects.append(storageObject)
@@ -95,6 +81,13 @@ class Uniklaud:
         for i in self.mountedStorageObjects:
             providers.append(i.provider)
         return providers
+
+    def getAllFreeB(self):
+        allfree = 0 # bytes
+        for storageComponent in self.mountedStorageObjects:
+            allfree = allfree + (storageComponent.size_bytes - storageComponent.getUsedB())
+
+        return allfree
 
 class UniklaudCLI:
     def __init__(self, uniklaud):
@@ -156,8 +149,6 @@ class UniklaudCLI:
             self.uniklaud.mountStorage(storagename, provider, size)
 
         self.listmounted()
-        
-
 
     def unmount(self, storageName):
         if storageName in self.uniklaud.mountedStorageObjects:
@@ -165,7 +156,6 @@ class UniklaudCLI:
             print("Storage object unmounted")
         else:
             print("Storage object was never mounted")
-
 
     def listmounted(self):
         print(colorama.Fore.MAGENTA + "Main storage drive: " + self.uniklaud.maindrive)
