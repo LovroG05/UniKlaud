@@ -9,6 +9,7 @@ class GoogleDriveProvider(StorageProvider.StorageProvider):
         self.provider = provider
         self.storageName = storageName
         self.size_bytes = size_bytes
+        self.storagePercentage = 0
 
     def getAuth(self):
         gauth = GoogleAuth()

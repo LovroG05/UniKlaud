@@ -2,6 +2,7 @@ from fsplit.filesplit import Filesplit
 import os
 import csv
 import json
+import colorama
 
 class Splitter:
     def __init__(self, filesize, tmppath, uniklaud):
@@ -17,7 +18,7 @@ class Splitter:
         print("file: {0}, size: {1}".format(f, s))
 
     def split(self, path):
-        self.fs.split(file=path, split_size=4000000, output_dir=self.tempPath, callback=self.split_cb)  # TODO
+        self.fs.split(file=path, split_size=4000000, output_dir=self.tmppath, callback=self.split_cb)  # TODO
         # TODO delete temp after upload
 
     def merge(self, in_path, out_path):
@@ -34,11 +35,11 @@ class Splitter:
         maindrive = self.uniklaud.getMainDrive()
         for drive in self.uniklaud.mountedStorageObjects:
             if drive.storageName == maindrive:
+                print("Uploading to maindrive")
                 drive.uploadFile(self.tmppath + "/fs_" + filename + ".csv", "/fs_" + filename + ".csv")
 
         # TODO split split files between providers and write it to /tmp/main.json, then upload it to maindrive
-        splitFiles = []
-        fields = []
+
         lines = []
         with open(self.tmppath + "/fs_" + filename + ".csv", "r") as f:
             reader = csv.reader(f)
@@ -47,9 +48,6 @@ class Splitter:
                 lines.append(line)
             f.close()
 
-        filesCount = len(lines)
-        storagesCount = len(self.uniklaud.mountedStorageObjects)
-
         fileJsons = []
         for file in lines:
             allfree = self.uniklaud.getAllFreeB()
@@ -57,16 +55,29 @@ class Splitter:
                 storageComponent.updateStoragePercentage(allfree)
 
             storages = self.uniklaud.mountedStorageObjects
-            storages.sort(key=lambda x: x.storagePercentage, reverse=True)
-
-            storages[0].uploadFile(self.tmppath + file[0], file[0])
+            storages.sort(key=lambda x: x.storagePercentage, reverse=False)
+            
+            print(colorama.Fore.GREEN + "Uploading file: " + file[0] + " to " + storages[0].storageName)
+            storages[0].uploadFile(self.tmppath + "/" + file[0], file[0])
             fileJsons.append({"name": file[0], "storage": storages[0].storageName, "size": file[1], "encoding": file[2], "header": file[3]})
             # delete file from /tmp/file[0]
-            os.remove(self.tmppath + file[0])
+            filetd = self.tmppath + "/" + file[0]
+            print(colorama.Fore.YELLOW + "Deleting file: " + filetd)
+            os.remove(filetd)
 
-        with open(self.tmppath + "/main.json", "rw") as f:
+        with open(self.tmppath + "/main.json", "w") as f:
+            f.write("{}")
+            f.close()
+
+        config = ""
+        files = []
+        with open(self.tmppath + "/main.json", "r") as f:
             config = json.load(f)
-            files = config["files"]
+            if "files" in config:
+                files = config["files"]
+            f.close()
+
+        with open(self.tmppath + "/main.json", "w") as f:
             _json = {}
             _json["manifestname"] = "fs_" + filename + ".csv"
             _json["subFiles"] = fileJsons
@@ -74,6 +85,14 @@ class Splitter:
             config["files"] = files
             json.dump(config, f)
             f.close()
+
+        maindrive = self.uniklaud.getMainDrive()
+        for drive in self.uniklaud.mountedStorageObjects:
+            if drive.storageName == maindrive:
+                print(colorama.Fore.GREEN + "Uploading to maindrive")
+                drive.uploadFile(self.tmppath + "/main.json", "main.json")
+
+        
 
 # {
 #   "files": [

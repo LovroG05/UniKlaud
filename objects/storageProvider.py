@@ -39,4 +39,4 @@ class StorageProvider:
         }
 
     def updateStoragePercentage(self, allfree):
-        self.storagePercentage = allfree /((self.size_bytes - self.getUsedB()))
+        self.storagePercentage = allfree /((int(self.size_bytes) - int(self.getUsedB())))

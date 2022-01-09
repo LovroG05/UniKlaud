@@ -1,10 +1,12 @@
 import sys, os
 import storagePlugins.googledrive as googleDrive
 import packages.configurator as configurator
+import packages.splitter as splitter
 import json
 import pyfiglet
 import colorama
 import storagePlugins.dropboxprovider as dropboxprovider
+import random
 
 
 class Uniklaud:
@@ -85,7 +87,7 @@ class Uniklaud:
     def getAllFreeB(self):
         allfree = 0 # bytes
         for storageComponent in self.mountedStorageObjects:
-            allfree = allfree + (storageComponent.size_bytes - storageComponent.getUsedB())
+            allfree = allfree + (int(storageComponent.size_bytes) - int(storageComponent.getUsedB()))
 
         return allfree
 
@@ -93,9 +95,11 @@ class UniklaudCLI:
     def __init__(self, uniklaud):
         self.result = pyfiglet.figlet_format("Uniklaud", font="bulbhead")
         self.uniklaud = uniklaud
+        self.splitter = splitter.Splitter(4000000, "tmp", self.uniklaud)
         self.print_header()
         self.print_commands()
         self.mainLoop()
+        
 
     def print_header(self):
         print(colorama.Fore.GREEN + self.result)
@@ -109,6 +113,7 @@ class UniklaudCLI:
         print("(2)  unmount <storageName>")
         print("(3)  listmounted --provider <provider>")
         print("(4)  maindrive <storageName>")
+        print("(5)  upload <file path>")
         print("(98)  quit")
         print("(99)  clear")
         print("\n\n\n")
@@ -132,6 +137,9 @@ class UniklaudCLI:
 
             elif command.startswith("maindrive"):
                 self.maindrive(command.split(" ")[1])
+
+            elif command.startswith("upload"):
+                self.upload(command.split(" ")[1])
 
             elif command == "quit":
                 print(colorama.Fore.RED + "Goodbye!")
@@ -168,6 +176,12 @@ class UniklaudCLI:
             self.uniklaud.setMainDrive(storageName)
         else:
             print(colorama.Fore.YELLOW + "Main drive already set")
+
+    def upload(self, filepath):
+        self.splitter.split_and_upload(filepath)
+        print(colorama.Fore.GREEN + "File uploaded!")
+        if random.randint(0, 100000) == 0:
+            print(colorama.Fore.BLUE + "POGGERS!")
 
 
 if __name__ == '__main__':
