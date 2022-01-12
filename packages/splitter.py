@@ -3,6 +3,7 @@ import os
 import csv
 import json
 import colorama
+import uuid
 
 class Splitter:
     def __init__(self, filesize, tmppath, uniklaud):
@@ -81,6 +82,7 @@ class Splitter:
         with open(self.tmppath + "/main.json", "w") as f:
             _json = {}
             _json["manifestname"] = "fs_" + filename + ".csv"
+            _json["manifestid"] = str(uuid.uuid4())
             _json["subFiles"] = fileJsons
             files.append(_json)
             config["files"] = files
