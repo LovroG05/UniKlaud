@@ -4,6 +4,8 @@ import csv
 import json
 import colorama
 import uuid
+import random
+import shutil
 
 class Splitter:
     def __init__(self, filesize, tmppath, uniklaud):
@@ -22,9 +24,9 @@ class Splitter:
         self.fs.split(file=path, split_size=4000000, output_dir=self.tmppath, callback=self.split_cb)  # TODO
         # TODO delete temp after upload
 
-    def merge(self, in_path, out_path):
+    def merge(self, in_path, out_path, manifest_path):
         # TODO download to temp
-        self.fs.merge(input_dir=in_path, output_file=out_path) # TODO
+        self.fs.merge(input_dir=in_path, output_file=out_path, manifest_file=manifest_path) # TODO
         # TODO delete temp after merge
 
     def split_and_upload(self, path):
@@ -37,7 +39,7 @@ class Splitter:
         for drive in self.uniklaud.mountedStorageObjects:
             if drive.storageName == maindrive:
                 print("Uploading to maindrive")
-                drive.uploadFile(self.tmppath + "/fs_" + filename + ".csv", "/fs_" + filename + ".csv")
+                drive.uploadFile(self.tmppath + "/fs_" + filename + ".csv", "fs_" + filename + ".csv")
 
         # TODO split split files between providers and write it to /tmp/main.json, then upload it to maindrive
 
@@ -96,6 +98,33 @@ class Splitter:
                 drive.deleteFile("main.json")
                 drive.uploadFile(self.tmppath + "/main.json", "main.json")
 
+    def download_and_merge(self, manifest_json, out_path):
+        randomConvInt = random.randint(0, 9999)
+        os.mkdir(self.tmppath + "/" + str(randomConvInt))
+
+        manifestFilename = manifest_json["manifestname"]
+        maindrive = self.uniklaud.getMainDrive()
+        for drive in self.uniklaud.mountedStorageObjects:
+            if drive.storageName == maindrive:
+                drive.downloadFile(manifestFilename, self.tmppath + "/" + str(randomConvInt) + "/" + manifestFilename)
+
+        subfiles_list = []
+        for subfile in manifest_json["subFiles"]:
+            subfiles_list.append(subfile)
+
+        for subfile in subfiles_list:
+            for drive in self.uniklaud.mountedStorageObjects:
+                if drive.storageName == subfile["storage"]:
+                    print(colorama.Fore.GREEN + "Downloading file: " + subfile["name"] + " from " + drive.storageName)
+                    drive.downloadFile(subfile["name"], self.tmppath + "/" + str(randomConvInt) + "/" + subfile["name"])
+
+        apathw = self.tmppath + "/" + str(randomConvInt) + "/"
+        print(colorama.Fore.YELLOW + apathw)
+        self.merge(apathw, out_path, self.tmppath + "/" + str(randomConvInt) + "/" + manifestFilename)
+        shutil.rmtree(apathw)
+        
+
+        
 
         
 
@@ -103,6 +132,7 @@ class Splitter:
 #   "files": [
 #     {
 #       "manifestname": "",
+#       "manifestid": "",
 #       "subFiles": [
 #         {
 #           "name": "",

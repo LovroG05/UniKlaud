@@ -121,7 +121,8 @@ class UniklaudCLI:
         print("(2)  unmount <storageName>")
         print("(3)  listmounted --provider <provider>")
         print("(4)  maindrive <storageName>")
-        print("(5)  upload <file path>")
+        print("(5)  ls")
+        print("(6)  upload <file path>")
         print("(98)  quit")
         print("(99)  clear")
         print("\n\n\n")
@@ -146,8 +147,16 @@ class UniklaudCLI:
             elif command.startswith("maindrive"):
                 self.maindrive(command.split(" ")[1])
 
+            elif command.startswith("ls"):
+                self.ls()
+
             elif command.startswith("upload"):
                 self.upload(command.split(" ")[1])
+
+            elif command.startswith("download"):
+                filename = command.split(" ")[1]
+                out_path = command.split(" ")[2]
+                self.download(filename, out_path)
 
             elif command == "quit":
                 print(colorama.Fore.RED + "Goodbye!")
@@ -185,11 +194,36 @@ class UniklaudCLI:
         else:
             print(colorama.Fore.YELLOW + "Main drive already set")
 
+    def ls(self):
+        alljson = ""
+        with open("tmp/main.json", "r") as f:
+            alljson = json.load(f)
+            f.close()
+
+        for i in alljson["files"]:
+            print(colorama.Fore.CYAN + i["manifestname"])
+
     def upload(self, filepath):
         self.splitter.split_and_upload(filepath)
         print(colorama.Fore.GREEN + "File uploaded!")
-        if random.randint(0, 100000) == 0:
+        if random.randint(0, 999999) == 0:
             print(colorama.Fore.BLUE + "POGGERS!")
+
+    def download(self, filename, out_path):
+        with open("tmp/main.json", "r") as mj:
+            mainjson = json.load(mj)
+            mj.close()
+        
+        filejson = ""
+        for i in mainjson["files"]:
+            if i["manifestname"] == filename:
+                filejson = i
+
+        if filejson != "": 
+            self.splitter.download_and_merge(filejson, out_path)
+            print(colorama.Fore.GREEN + "File downloaded!")
+        else:
+            print(colorama.Fore.RED + "File not found!")
 
 
 if __name__ == '__main__':

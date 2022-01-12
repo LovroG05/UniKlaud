@@ -45,7 +45,7 @@ class GoogleDriveProvider(StorageProvider.StorageProvider):
     def getFileId(self, filename):
         file_list = self.drive.ListFile({'q': "'root' in parents"}).GetList()
         for file1 in file_list:
-            print('title: {}, id: {}'.format(file1['title'], file1['id']))
+            # print('title: {}, id: {}'.format(file1['title'], file1['id']))
             if filename == file1['title']:
                 return file1['id']
         return "That file does not exist"
