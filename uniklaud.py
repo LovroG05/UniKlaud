@@ -123,6 +123,7 @@ class UniklaudCLI:
         print("(4)  maindrive <storageName>")
         print("(5)  ls")
         print("(6)  upload <file path>")
+        print("(7)  download <csv filename> <output file>")
         print("(98)  quit")
         print("(99)  clear")
         print("\n\n\n")
