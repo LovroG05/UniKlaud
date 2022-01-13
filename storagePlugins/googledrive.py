@@ -4,27 +4,30 @@ from pydrive2.drive import GoogleDrive
 
 class GoogleDriveProvider(StorageProvider.StorageProvider):
     def __init__(self, provider, storageName, size_bytes):
-        self.auth = self.getAuth()
+        self.auth = self.getAuth(storageName)
         self.drive = self.initialize(self.auth)
         self.provider = provider
         self.storageName = storageName
         self.size_bytes = size_bytes
         self.storagePercentage = 0
 
-    def getAuth(self):
+    def getAuth(self, storagename):
         gauth = GoogleAuth()
-        gauth.LoadCredentialsFile("mycreds.txt")
+        gauth.LoadCredentialsFile(storagename + ".txt")
         if gauth.credentials is None:
             # Authenticate if they're not there
             gauth.LocalWebserverAuth()
         elif gauth.access_token_expired:
         # Refresh them if expired
-            gauth.Refresh()
+            try:
+                gauth.Refresh()
+            except Exception as e:
+                gauth.Authorize()
         else:
             # Initialize the saved creds
             gauth.Authorize()
         # Save the current credentials to a file
-        gauth.SaveCredentialsFile("mycreds.txt")
+        gauth.SaveCredentialsFile(storagename + ".txt")
         return gauth
 
     def initialize(self, auth):

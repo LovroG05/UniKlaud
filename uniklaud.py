@@ -10,19 +10,21 @@ import random
 
 
 class Uniklaud:
-    def __init__(self, mnt, maindrive):
+    def __init__(self, config, maindrive):
         self.split_size = 4000000
         self.tempPath = "tmp"
         self.mountedStorageObjects = []
         self.providers = ["googleDrive", "dropbox"]
         self.maindrive = maindrive
-        self.loadMount(mnt)
+        self.config = config
+        self.loadMount(config["mainDriveName"])
         if self.maindrive != "":
             if self.mountedStorageObjects != []:
                 self.getMainJson()
 
     def getMainJson(self):
-        os.mkdir(self.tempPath)
+        if not os.path.isdir(self.tempPath):
+            os.mkdir(self.tempPath)
         for i in self.mountedStorageObjects:
             if i.storageName == self.maindrive:
                 i.downloadFile("main.json", "tmp/main.json")
@@ -77,12 +79,7 @@ class Uniklaud:
             self.mountStorageObject(googleDrive.GoogleDriveProvider(provider, storagename, size))
             print("Storage object mounted")
         elif provider == "dropbox":
-            with open("dropbox.txt", "w") as f:
-                secret = input("Enter your dropbox secret: ")
-                f.write(secret)
-                f.close()
-                
-            self.mountStorageObject(dropboxprovider.DropboxProvider(provider, storagename, size))
+            self.mountStorageObject(dropboxprovider.DropboxProvider(provider, storagename, size, config["dropbox_key"], config["dropbox_secret"]))
             print("Storage object mounted")
         else:
             print("Unknown storage provider")
@@ -169,7 +166,7 @@ class UniklaudCLI:
     
     # COMMAND FUNCTIONS
     def mount(self, storagename, provider, size):
-        usednames = self.uniklaud.getUsedStorageProviders()
+        usednames = self.uniklaud.getUsedStorageNames()
         if provider in usednames:
             print(colorama.Fore.RED + "Storage name already used!")
         else:
@@ -231,5 +228,5 @@ class UniklaudCLI:
 if __name__ == '__main__':
     configMaster = configurator.Configurator("config.json")
     config = configMaster.get_config()
-    uniklaud = Uniklaud(config["mountedStorageObjects"], config["mainDriveName"])
+    uniklaud = Uniklaud(config["mountedStorageObjects"], config)
     uniklaudCLI = UniklaudCLI(uniklaud)

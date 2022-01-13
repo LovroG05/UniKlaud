@@ -154,3 +154,5 @@ cython_debug/
 /ubports-installer_0.8.8-beta_linux_amd64.deb
 
 /tmp
+
+/config.json
