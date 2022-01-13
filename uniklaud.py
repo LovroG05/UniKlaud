@@ -22,6 +22,7 @@ class Uniklaud:
                 self.getMainJson()
 
     def getMainJson(self):
+        os.mkdir(self.tempPath)
         for i in self.mountedStorageObjects:
             if i.storageName == self.maindrive:
                 i.downloadFile("main.json", "tmp/main.json")
@@ -86,11 +87,11 @@ class Uniklaud:
         else:
             print("Unknown storage provider")
 
-    def getUsedStorageProviders(self):
-        providers = []
+    def getUsedStorageNames(self):
+        names = []
         for i in self.mountedStorageObjects:
-            providers.append(i.provider)
-        return providers
+            names.append(i.storageName)
+        return names
 
     def getAllFreeB(self):
         allfree = 0 # bytes
@@ -168,9 +169,9 @@ class UniklaudCLI:
     
     # COMMAND FUNCTIONS
     def mount(self, storagename, provider, size):
-        usedproviders = self.uniklaud.getUsedStorageProviders()
-        if provider in usedproviders:
-            print("Storage provider already mounted")
+        usednames = self.uniklaud.getUsedStorageProviders()
+        if provider in usednames:
+            print(colorama.Fore.RED + "Storage name already used!")
         else:
             self.uniklaud.mountStorage(storagename, provider, size)
 
