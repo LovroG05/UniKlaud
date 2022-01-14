@@ -74,11 +74,11 @@ class Splitter:
                 f.close()
 
         config = ""
-        files = []
+        root = {}
         with open(self.tmppath + "/main.json", "r") as f:
             config = json.load(f)
-            if "files" in config:
-                files = config["files"]
+            if "root" in config:
+                root = config["root"]
             f.close()
 
         with open(self.tmppath + "/main.json", "w") as f:
@@ -86,8 +86,15 @@ class Splitter:
             _json["manifestname"] = "fs_" + filename + ".csv"
             _json["manifestid"] = str(uuid.uuid4())
             _json["subFiles"] = fileJsons
-            files.append(_json)
-            config["files"] = files
+            stages = self.uniklaud.pwd.split("/")
+            stages.pop("root")
+            current_dir = {}
+            for stage in stages:
+                current_dir = current_dir["directories"][stage]
+
+            current_dir["files"]
+            
+            config["root"] = root
             json.dump(config, f)
             f.close()
 
