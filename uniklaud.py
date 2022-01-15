@@ -7,22 +7,24 @@ import pyfiglet
 import colorama
 import storagePlugins.dropboxprovider as dropboxprovider
 import random
+from flatten_json import flatten, unflatten
 import jsonpickle
-import entities.File as File
-import entities.Folder as Folder
+import objects.File as File
+import objects.Folder as Folder
 
 
 class Uniklaud:
-    def __init__(self, config, maindrive):
+    def __init__(self, mnt, config):
         self.split_size = 4000000
         self.tempPath = "tmp"
         self.mountedStorageObjects = []
         self.providers = ["googleDrive", "dropbox"]
-        self.maindrive = maindrive
+        self.maindrive = config["mainDriveName"]
         self.config = config
         self.filesystem = self.loadFilesystem()
         self.pwd = "/"
-        self.loadMount(config["mainDriveName"])
+        self.pwDir = None
+        self.loadMount(mnt)
         if self.maindrive != "":
             if self.mountedStorageObjects != []:
                 self.getMainJson()
@@ -30,46 +32,54 @@ class Uniklaud:
     def loadFilesystem(self):
         root = {}
         with open(self.tempPath + "/" + "main.json", "r") as f:
-            root = jsonpickle.decode(f.read())
+            root = jsonpickle.decode(f)
             f.close()
+
+        self.cd(self.pwd)
 
         return root
 
     def saveFilesystem(self):
-        str = jsonpickle.encode(self.filesystem)
+        rootString = jsonpickle.encode(self.filesystem)
 
         with open(self.tempPath + "/" + "main.json", 'w') as fp:
-            fp.write(str)
+            fp.write(rootString)
             fp.close()
 
-    def getPwdObj(self):
-        pwdnodes = self.pwd.split("/")
-        pwdnodes.remove("")
-        obj = self.filesystem
-        for i in pwdnodes:
-            if i in obj.directories:
-                obj = obj.directories[i]
-            else:
-                print(colorama.Fore.RED + "Directory not found")
-                return None
+    def cd(self, path):
+        if path == "..":
+            pathArr = self.pwd.split("/")
+            pathArr = pathArr[:-1]
+            finalPath = "/" + "".join(pathArr)
 
-    def cd(self, dir):
-        if dir in self.getPwdObj().directories:
-            self.pwd = self.pwd + dir + "/"
+            self.cd(finalPath)
+        elif path == "/":
+            self.pwd = "/"
+            self.pwDir = self.filesystem
         else:
-            print(colorama.Fore.RED + "Directory not found")
+            if path[0] == '/':
+                pathParts = path.split("/")
+                pathParts = pathParts[1:]
+                self.pwDir = self.filesystem
+                self.pwd = ""
+                
+                for i in pathParts:
+                    self.pwDir = self.pwDir.nodes[i]
+                    self.pwd = self.pwd + "/" + self.pwDir.name
+            else:
+                pathParts = path.split("/")
+
+                for i in pathParts:
+                    if self.pwd == "/":
+                        self.pwDir = self.pwDir.nodes[i]
+                        self.pwd = self.pwd + self.pwDir.name
+                    else:
+                        self.pwDir = self.pwDir.nodes[i]
+                        self.pwd = self.pwd + "/" + self.pwDir.name
 
     def ls(self):
-        for i in self.getPwdObj().directories:
-            print(colorama.Fore.BLUE + i.name)
+        pass
 
-        for i in self.getPwdObj().files:
-            print(colorama.Fore.GREEN + i.name)
-
-    def mkdir(self, dirname):
-        dir_ = Folder.Folder(dirname)
-        self.getPwdObj().addDirectory(dir_)
-        self.saveFilesystem()
 
     def getMainJson(self):
         if not os.path.isdir(self.tempPath):
@@ -243,13 +253,14 @@ class UniklaudCLI:
             print(colorama.Fore.YELLOW + "Main drive already set")
 
     def ls(self):  # TODO
-        alljson = ""
-        with open("tmp/main.json", "r") as f:
-            alljson = json.load(f)
-            f.close()
+        # alljson = ""
+        # with open("tmp/main.json", "r") as f:
+        #     alljson = json.load(f)
+        #     f.close()
 
-        for i in alljson["files"]:
-            print(colorama.Fore.CYAN + i["manifestname"])
+        # for i in alljson["files"]:
+        #     print(colorama.Fore.CYAN + i["manifestname"])
+        self.uniklaud.ls()
 
     def upload(self, filepath):
         self.splitter.split_and_upload(filepath)
