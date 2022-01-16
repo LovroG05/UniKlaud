@@ -7,19 +7,19 @@ import pyfiglet
 import colorama
 import storagePlugins.dropboxprovider as dropboxprovider
 import random
-from flatten_json import flatten, unflatten
 import jsonpickle
 from objects.File import File
 from objects.Folder import Folder
 import pandas as pd
+from packages.MessageUtil import *
 
 class Uniklaud:
     def __init__(self, mnt, config):
         self.split_size = 4000000
         self.tempPath = "tmp"
         self.mountedStorageObjects = []
-        self.providers = ["googleDrive", "dropbox"]
         self.maindrive = config["mainDriveName"]
+        self.providers = ["googleDrive", "dropbox"]
         self.config = config
         self.splitter = Splitter(self.split_size, self.tempPath, self)
         
@@ -37,18 +37,25 @@ class Uniklaud:
 
     def loadFilesystem(self):
         root:Folder = None
-        with open(self.tempPath + "/" + "main.json") as f:
-            root = jsonpickle.decode(f.read())
-            f.close()
+        try:
+            with open(self.tempPath + "/" + "main.json") as f:
+                root = jsonpickle.decode(f.read())
+                f.close()
+        except FileNotFoundError as e:
+            printError("No main.json found")
+            printError("Trying to fetch main.json from " + self.maindrive)
+            self.getMainJson()
 
         return root
 
     def saveFilesystem(self):
-        rootString = jsonpickle.encode(self.filesystem)
-
-        with open(self.tempPath + "/" + "main.json", 'w') as fp:
-            fp.write(rootString)
-            fp.close()
+        try:
+            rootString = jsonpickle.encode(self.filesystem)
+            with open(self.tempPath + "/" + "main.json", 'w') as fp:
+                fp.write(rootString)
+                fp.close()
+        except Exception as e:
+            printError("Error while saving filesystem: " + str(e))
 
     def cd(self, path):  # TODO ../..
         if path == "..":
@@ -68,18 +75,30 @@ class Uniklaud:
                 self.pwd = ""
                 
                 for i in pathParts:
-                    self.pwDir = self.pwDir.getFolder(i)
-                    self.pwd = self.pwd + "/" + self.pwDir.name
+                    try:
+                        folderToCd = self.pwDir.getFolder(i)
+
+                        self.pwDir = self.pwDir.getFolder(i)
+                        self.pwd = self.pwd + "/" + self.pwDir.name
+                    except KeyError:
+                        printError("Folder does not exist")
+                        break
             else:
                 pathParts = path.split("/")
 
                 for i in pathParts:
-                    if self.pwd == "/":
-                        self.pwDir = self.pwDir.getFolder(i)
-                        self.pwd = self.pwd + self.pwDir.name
-                    else:
-                        self.pwDir = self.pwDir.getFolder(i)
-                        self.pwd = self.pwd + "/" + self.pwDir.name
+                    try:
+                        folderToCd = self.pwDir.getFolder(i)
+                        
+                        if self.pwd == "/":
+                            self.pwDir = folderToCd
+                            self.pwd = self.pwd + self.pwDir.name
+                        else:
+                            self.pwDir = folderToCd
+                            self.pwd = self.pwd + "/" + self.pwDir.name    
+                    except KeyError:
+                        printError("Folder does not exist")
+                        break
 
     def ls(self):
         list = []
@@ -88,54 +107,76 @@ class Uniklaud:
         return list
         
     def createFolder(self, folderName):
-        self.pwDir.addFolder(Folder(folderName))
+        folders = []
+        for i in self.pwDir.getFolders():
+            folders.append(i.name)
+        
+        if folderName not in folders:
+            self.pwDir.addFolder(Folder(folderName))
+        else:
+            printError("Folder with that name already exists")
 
     def removeFile(self, folder, file):
-        self.splitter.remove_file(folder, file)
+        if file not in folder.getFiles():
+            self.splitter.remove_file(folder, file)
+        else:
+            printError("File does not exist")
 
     def removeFolder(self, folder):
-        fileDict = folder.getFiles()
-        folderDict = folder.getFolders()
-        
-        fileList = []
-        for i in fileDict:
-           fileList.append(fileDict[i])
+        if folder in self.pwDir.getFolders():
+            fileDict = folder.getFiles()
+            folderDict = folder.getFolders()
+            
+            fileList = []
+            for i in fileDict:
+                fileList.append(fileDict[i])
 
-        for i in fileList:
-            self.removeFile(folder, i)
-        
-        folderList = []
-        for i in folderDict:
-            folderList.append(folderDict[i])
-           
-        for i in folderList:
-            self.removeFolder(i)
+            for i in fileList:
+                self.removeFile(folder, i)
+            
+            folderList = []
+            for i in folderDict:
+                folderList.append(folderDict[i])
+            
+            for i in folderList:
+                self.removeFolder(i)
 
-        self.pwDir.removeFolder(folder)
-        self.saveFilesystem()
+            self.pwDir.removeFolder(folder)
+            self.saveFilesystem()
+        else:
+            printError("Folder does not exist")
 
     def getMainJson(self):
-        if not os.path.isdir(self.tempPath):
-            os.mkdir(self.tempPath)
-        for i in self.mountedStorageObjects:
-            if i.storageName == self.maindrive:
-                i.downloadFile("main.json", "tmp/main.json")
+        try:
+            if not os.path.isdir(self.tempPath):
+                os.mkdir(self.tempPath)
+            for i in self.mountedStorageObjects:
+                if i.storageName == self.maindrive:
+                    i.downloadFile("main.json", "tmp/main.json")
+        except Exception as e:
+            printError("Error while downloading main.json: " + str(e))
 
     def loadMount(self, mnt):
-        print(mnt)
         for i in mnt:
             drive = json.loads(i)
             provider = drive["provider"]
             storagename = drive["storagename"]
             size = drive["size_bytes"]
             if provider == "googleDrive":
-                self.mountedStorageObjects.append(googleDrive.GoogleDriveProvider(provider, storagename, size))
-                print("Storage object mounted")
+                try:
+                    self.mountedStorageObjects.append(googleDrive.GoogleDriveProvider(provider, storagename, size))
+                    print(colorama.Fore.GREEN + "Storage object mounted")
+                except Exception as e:
+                    printError("Error while mounting drive: " + str(e))
+                
             elif provider == "dropbox":
-                self.mountedStorageObjects.append(dropboxprovider.DropboxProvider(provider, storagename, size, self.config["dropbox_key"], self.config["dropbox_secret"]))
-                print("Storage object mounted")
+                try:
+                    self.mountedStorageObjects.append(dropboxprovider.DropboxProvider(provider, storagename, size, self.config["dropbox_key"], self.config["dropbox_secret"]))
+                    print(colorama.Fore.GREEN + "Storage object mounted")
+                except Exception as e:
+                    printError("Error while mounting drive: " + str(e))
             else:
-                print("Unknown storage provider")
+                printError("Unknown storage provider")
 
     def setMainDrive(self, drive):
         self.maindrive = drive
@@ -144,7 +185,7 @@ class Uniklaud:
         config["mainDriveName"] = drive
         configMaster.write_config(config)
         print("Main drive set to " + drive)
-        print(colorama.Fore.RED + "DO NOT ATTEMPT TO CHANGE IT!")
+        printWarning("DO NOT ATTEMPT TO CHANGE IT!")
 
     def getMainDrive(self):
         return self.maindrive
@@ -163,23 +204,35 @@ class Uniklaud:
         self.updateConfigMounted(self.mountedStorageObjects)
 
     def unmountStorageObject(self, storageName):
-        self.mountedStorageObjects.pop(storageName)
-        self.updateConfigMounted(self.mountedStorageObjects)
+        for i in self.mountedStorageObjects:
+            if i.storageName == storageName:
+                try:
+                    self.mountedStorageObjects.remove(i)
+                    self.updateConfigMounted(self.mountedStorageObjects)
+                except Exception as e:
+                    printError("Error while unmounting drive: " + str(e))
 
     def mountStorage(self, storagename, provider, size):
         if provider == "googleDrive":
-            self.mountStorageObject(googleDrive.GoogleDriveProvider(provider, storagename, size))
-            print("Storage object mounted")
+            try:
+                self.mountStorageObject(googleDrive.GoogleDriveProvider(provider, storagename, size))
+                print("Storage object mounted")
+            except Exception as e:
+                printError("Error while mounting drive: " + str(e))
         elif provider == "dropbox":
-            self.mountStorageObject(dropboxprovider.DropboxProvider(provider, storagename, size, config["dropbox_key"], config["dropbox_secret"]))
-            print("Storage object mounted")
+            try:
+                self.mountStorageObject(dropboxprovider.DropboxProvider(provider, storagename, size, self.config["dropbox_key"], self.config["dropbox_secret"]))
+                print("Storage object mounted")
+            except Exception as e:
+                printError("Error while mounting drive: " + str(e))
         else:
-            print("Unknown storage provider")
+            printError("Unknown storage provider")
 
     def getUsedStorageNames(self):
         names = []
-        for i in self.mountedStorageObjects:
-            names.append(i.storageName)
+        if len(self.mountedStorageObjects) > 0:
+            for i in self.mountedStorageObjects:
+                names.append(i.storageName)
         return names
 
     def getAllFreeB(self):
@@ -190,24 +243,50 @@ class Uniklaud:
         return allfree
 
     def upload(self, filepath):
-        self.splitter.split_and_upload(filepath)
-        print(colorama.Fore.GREEN + "File uploaded!")
-        if random.randint(0, 999999) == 0:
-            print(colorama.Fore.BLUE + "POGGERS!")
+        try:
+            self.splitter.split_and_upload(filepath)
+            print(colorama.Fore.GREEN + "File uploaded!")
+            if random.randint(0, 999999) == 0:
+                print(colorama.Fore.BLUE + "POGGERS!")
+        except Exception as e:
+            printError("Error while uploading file: " + str(e))
 
     def download(self, filename, out_path):
-        fileToDownload = self.pwDir.getFiles()[filename]
+        fileToDownload = None
+        try:
+            fileToDownload = self.pwDir.getFiles()[filename]
+        except KeyError:
+            printError("File does not exist")
 
         if fileToDownload != None: 
-            self.splitter.download_and_merge(fileToDownload, out_path)
-            print(colorama.Fore.GREEN + "File downloaded!")
+            try:
+                self.splitter.download_and_merge(fileToDownload, out_path)
+                print(colorama.Fore.GREEN + "File downloaded!")
+            except Exception as e:
+                printError("Error while downloading file: " + str(e))
         else:
-            print(colorama.Fore.RED + "File not found!")
+            printError("File not found!")
 
 class UniklaudCLI:
     def __init__(self, uniklaud):
         self.result = pyfiglet.figlet_format("Uniklaud", font="bulbhead")
         self.uniklaud = uniklaud
+        self.commands = [
+            {"command": "help", "arguments":""},
+            {"command": "mount", "arguments":"<provider> <storagename> <size_bytes>"},
+            {"command": "unmount", "arguments":"<storagename>"},
+            {"command": "maindrive", "arguments":"<storageName>"},
+            {"command": "ls", "arguments":""},
+            {"command": "pwd", "arguments":""},
+            {"command": "cd", "arguments":"<path>"},
+            {"command": "upload", "arguments":"<file path>"},
+            {"command": "mkdir", "arguments":"<folderName>"},
+            {"command": "download", "arguments":"<fileName> <output/file/path>"},
+            {"command": "rm", "arguments":"<fileName>"},
+            {"command": "rmdir", "arguments":"<folderName>"},
+            {"command": "exit", "arguments":""},
+            {"command": "clear", "arguments":""}
+        ]
         self.print_header()
         self.print_commands()
         self.mainLoop()
@@ -220,21 +299,7 @@ class UniklaudCLI:
 
     def print_commands(self):
         print("Available commands:")
-        print("(0)  help")
-        print("(1)  mount <storageName> <provider> <size[Bytes]>")
-        print("(2)  unmount <storageName>")
-        print("(3)  listmounted --provider <provider>")
-        print("(4)  maindrive <storageName>")
-        print("(5)  ls")
-        print("(6)  pwd")
-        print("(7)  cd <path>")
-        print("(8)  upload <file path>")
-        print("(9)  mkdir <folderName>")
-        print("(10)  download <csv fileName> <output file>")
-        print("(11)  rm <fileName>")
-        print("(12)  rmdir <folderName>")
-        print("(98)  quit")
-        print("(99)  clear")
+        print(pd.DataFrame(self.commands))
         print("\n\n\n")
 
     def mainLoop(self):
@@ -256,8 +321,12 @@ class UniklaudCLI:
                     self.uniklaud.mountStorage(storagename, provider, size)
                     print(colorama.Fore.GREEN + "Storage object mounted")
 
-            elif command == "unmount":
-                print(colorama.Fore.RED + "This command is not implemented yet")
+            elif command.startswith("unmount"):
+                printWarning("Note that this will make any files on the storage unrecoverable!")
+                if input("Are you sure? (y/n)") == "y":
+                    storagename = command.split(" ")[1]
+                    self.uniklaud.unmountStorageObject(storagename)
+                    print(colorama.Fore.GREEN + "Storage object unmounted")
 
             elif command.startswith("listmounted"):
                 print(colorama.Fore.CYAN + "Main storage drive: " + self.uniklaud.maindrive)

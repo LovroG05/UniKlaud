@@ -14,22 +14,34 @@ class Folder:
 		self.files[file.name] = file
 
 	def removeFile(self, file):
-		del self.files[file.name]
+		try:
+			del self.files[file.name]
+		except KeyError:
+			pass
 
 	def removeFolder(self, folder):
-		del self.folders[folder.name]
+		try:
+			del self.folders[folder.name]
+		except KeyError:
+			pass
 		
 	def getFolders(self):
 		return self.folders
 
 	def getFolder(self, folderName):
-		return self.folders[folderName]
+		try:
+			return self.folders[folderName]
+		except KeyError:
+			raise KeyError("Folder not found")
 
 	def getFiles(self):
 		return self.files
 
 	def getFile(self, fileName):
-		return self.files[fileName]
+		try:
+			return self.files[fileName]
+		except KeyError:
+			raise KeyError("File not found")
 		
 	def toJSON(self):
 		return json.dumps(self, default=lambda o: o.__dict__, sort_keys=True, indent=4)

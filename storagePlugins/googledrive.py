@@ -1,10 +1,16 @@
 import objects.storageProvider as StorageProvider
 from pydrive2.auth import GoogleAuth
 from pydrive2.drive import GoogleDrive
+import os, sys
+from packages.MessageUtil import *
 
 class GoogleDriveProvider(StorageProvider.StorageProvider):
     def __init__(self, provider, storageName, size_bytes):
-        self.auth = self.getAuth(storageName)
+        try:
+            self.auth = self.getAuth(storageName)
+        except Exception as e:
+            printError("Error while authenticating: " + str(e))
+            sys.exit()
         self.drive = self.initialize(self.auth)
         self.provider = provider
         self.storageName = storageName
@@ -22,6 +28,10 @@ class GoogleDriveProvider(StorageProvider.StorageProvider):
             try:
                 gauth.Refresh()
             except Exception as e:
+                try:
+                    os.remove(storagename + ".txt")
+                except Exception as e:
+                    printWarning("Error while removing google credentials file: " + str(e))
                 gauth.Authorize()
         else:
             # Initialize the saved creds
@@ -34,23 +44,38 @@ class GoogleDriveProvider(StorageProvider.StorageProvider):
         return GoogleDrive(auth)
 
     def listFiles(self):
-        file_list = self.drive.ListFile({'q': "'root' in parents"}).GetList()
-        return file_list
+        try:
+            file_list = self.drive.ListFile({'q': "'root' in parents"}).GetList()
+            return file_list
+        except Exception as e:
+            printError("Error while listing files: " + str(e))
+            raise e
 
     def uploadFile(self, file_path, filename):
-        file1 = self.drive.CreateFile({'title': filename})
-        file1.SetContentFile(file_path)
-        file1.Upload()
+        try:
+            file1 = self.drive.CreateFile({'title': filename})
+            file1.SetContentFile(file_path)
+            file1.Upload()
+        except Exception as e:
+            raise e
 
     def getUsedB(self):
-        return self.drive.GetAbout().get('quotaBytesUsed')
+        try:
+            return self.drive.GetAbout().get('quotaBytesUsed')
+        except Exception as e:
+            printError("Error while getting used bytes: " + str(e))
+            raise e
 
     def getFileId(self, filename):
-        file_list = self.drive.ListFile({'q': "'root' in parents"}).GetList()
-        for file1 in file_list:
-            # print('title: {}, id: {}'.format(file1['title'], file1['id']))
-            if filename == file1['title']:
-                return file1['id']
+        try:
+            file_list = self.drive.ListFile({'q': "'root' in parents"}).GetList()
+        except Exception as e:
+            printError("Error while listing files: " + str(e))
+            raise e
+        if file_list is not None:
+            for file1 in file_list:
+                if filename == file1['title']:
+                    return file1['id']
         return "That file does not exist"
         
     def downloadFile(self, file, store_filename):
@@ -58,13 +83,19 @@ class GoogleDriveProvider(StorageProvider.StorageProvider):
         if fileid == "That file does not exist":
             print("That file does not exist")
         else:
-            file1 = self.drive.CreateFile({'id': fileid})
-            file1.GetContentFile(store_filename)
+            try:
+                file1 = self.drive.CreateFile({'id': fileid})
+                file1.GetContentFile(store_filename)
+            except Exception as e:
+                raise e
 
     def deleteFile(self, file):
         fileid = self.getFileId(file)
         if fileid == "That file does not exist":
             print("That file does not exist")
         else:
-            file1 = self.drive.CreateFile({'id': fileid})
-            file1.Delete()
+            try:
+                file1 = self.drive.CreateFile({'id': fileid})
+                file1.Delete()
+            except Exception as e:
+                raise e

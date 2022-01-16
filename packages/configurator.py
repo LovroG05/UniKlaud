@@ -1,4 +1,6 @@
 import json
+import os
+from packages.MessageUtil import printWarning
 
 
 class Configurator:
@@ -7,9 +9,22 @@ class Configurator:
         self.config = self.read_config()
 
     def read_config(self):
-        with open(self.config_file, 'r') as f:
-            config = json.load(f)
-            f.close()
+        if os.path.isfile(self.config_file):
+            with open(self.config_file, 'r') as f:
+                config = json.load(f)
+                f.close()
+        else:
+            printWarning("Config file not found, creating default config")
+            config = {
+                    "mountedStorageObjects": [],
+                    "mainDriveName": "",
+                    "dropbox_key": "7isgafmuvcmqz35",
+                    "dropbox_secret": "hj9odkregp2ephr"
+                }
+            with open(self.config_file, "w") as f:
+                json.dump(config, f)
+                f.close()
+        
         return config
 
     def get_config(self):
