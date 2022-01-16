@@ -107,9 +107,7 @@ class Uniklaud:
         return list
         
     def createFolder(self, folderName):
-        folders = []
-        for i in self.pwDir.getFolders():
-            folders.append(i.name)
+        folders = self.pwDir.getFolders().keys()
         
         if folderName not in folders:
             self.pwDir.addFolder(Folder(folderName))
