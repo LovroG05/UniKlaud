@@ -11,7 +11,7 @@ from flatten_json import flatten, unflatten
 import jsonpickle
 from objects.File import File
 from objects.Folder import Folder
-
+import pandas as pd
 
 class Uniklaud:
     def __init__(self, mnt, config):
@@ -86,9 +86,33 @@ class Uniklaud:
         list.append(self.pwDir.folders)
         list.append(self.pwDir.files)
         return list
+        
+    def createFolder(self, folderName):
+        self.pwDir.addFolder(Folder(folderName))
 
-    def removeFile(self, filename):
-        self.splitter.remove_file(self.pwDir.getFile(filename))
+    def removeFile(self, folder, file):
+        self.splitter.remove_file(folder, file)
+
+    def removeFolder(self, folder):
+        fileDict = folder.getFiles()
+        folderDict = folder.getFolders()
+        
+        fileList = []
+        for i in fileDict:
+           fileList.append(fileDict[i])
+
+        for i in fileList:
+            self.removeFile(folder, i)
+        
+        folderList = []
+        for i in folderDict:
+            folderList.append(folderDict[i])
+           
+        for i in folderList:
+            self.removeFolder(i)
+
+        self.pwDir.removeFolder(folder)
+        self.saveFilesystem()
 
     def getMainJson(self):
         if not os.path.isdir(self.tempPath):
@@ -108,7 +132,7 @@ class Uniklaud:
                 self.mountedStorageObjects.append(googleDrive.GoogleDriveProvider(provider, storagename, size))
                 print("Storage object mounted")
             elif provider == "dropbox":
-                self.mountedStorageObjects.append(dropboxprovider.DropboxProvider(provider, storagename, size))
+                self.mountedStorageObjects.append(dropboxprovider.DropboxProvider(provider, storagename, size, self.config["dropbox_key"], self.config["dropbox_secret"]))
                 print("Storage object mounted")
             else:
                 print("Unknown storage provider")
@@ -202,8 +226,13 @@ class UniklaudCLI:
         print("(3)  listmounted --provider <provider>")
         print("(4)  maindrive <storageName>")
         print("(5)  ls")
-        print("(6)  upload <file path>")
-        print("(7)  download <csv filename> <output file>")
+        print("(6)  pwd")
+        print("(7)  cd <path>")
+        print("(8)  upload <file path>")
+        print("(9)  mkdir <folderName>")
+        print("(10)  download <csv fileName> <output file>")
+        print("(11)  rm <fileName>")
+        print("(12)  rmdir <folderName>")
         print("(98)  quit")
         print("(99)  clear")
         print("\n\n\n")
@@ -217,88 +246,70 @@ class UniklaudCLI:
 
             elif command.startswith("mount"):
                 args = command.split(" ")
-                self.mount(args[1], args[2], args[3])
+                storagename = args[1]
+                provider = args[2]
+                size = args[3]
+                usednames = self.uniklaud.getUsedStorageNames()
+                if provider in usednames:
+                    print(colorama.Fore.RED + "Storage name already used!")
+                else:
+                    self.uniklaud.mountStorage(storagename, provider, size)
+                    print(colorama.Fore.GREEN + "Storage object mounted")
 
             elif command == "unmount":
                 print(colorama.Fore.RED + "This command is not implemented yet")
 
             elif command.startswith("listmounted"):
-                self.listmounted()
+                print(colorama.Fore.CYAN + "Main storage drive: " + self.uniklaud.maindrive)
+                print(pd.DataFrame([[i.storageName, i.provider, i.size_bytes] for i in self.uniklaud.mountedStorageObjects]))
 
             elif command.startswith("maindrive"):
-                self.maindrive(command.split(" ")[1])
+                storageName = command.split(" ")[1]
+                if self.uniklaud.maindrive == "":
+                    self.uniklaud.setMainDrive(storageName)
+                else:
+                    print(colorama.Fore.YELLOW + "Main drive already set")
 
             elif command.startswith("ls"):
-                self.ls()
-
-            elif command.startswith("pwd"):
-                print(self.uniklaud.pwd)
+                for i in self.uniklaud.ls()[0]:
+                    print(colorama.Fore.CYAN + i)
+                for i in self.uniklaud.ls()[1]:
+                    print(colorama.Fore.BLUE + i)
 
             elif command.startswith("cd"):
                 self.uniklaud.cd(command.split(" ")[1])
 
+            elif command.startswith("pwd"):
+                print(self.uniklaud.pwd)
+
             elif command.startswith("upload"):
-                self.upload(command.split(" ")[1])
+                self.uniklaud.upload(command.split(" ")[1])
 
             elif command.startswith("download"):
                 filename = command.split(" ")[1]
                 out_path = command.split(" ")[2]
-                self.download(filename, out_path)
+                self.uniklaud.download(filename, out_path)
+            
+            elif command.startswith("mkdir"):
+                foldername = command.split(" ")[1]
+                self.uniklaud.createFolder(foldername)
+
+            elif command.startswith("rmdir"):
+                foldername = command.split(" ")[1]
+                self.uniklaud.removeFolder(self.uniklaud.pwDir.getFolder(foldername))
 
             elif command.startswith("rm"):
                 filename = command.split(" ")[1]
-                self.removeFile(filename)
+                rmFolder = self.uniklaud.pwDir
 
-            elif command == "quit":
+                self.uniklaud.removeFile(rmFolder, rmFolder.getFile(filename))
+
+            elif command == "quit" or command == "exit":
                 print(colorama.Fore.RED + "Goodbye!")
                 sys.exit()
             
             elif command == "clear":
                 os.system('clear')
-    
-    # COMMAND FUNCTIONS
-    def mount(self, storagename, provider, size):
-        usednames = self.uniklaud.getUsedStorageNames()
-        if provider in usednames:
-            print(colorama.Fore.RED + "Storage name already used!")
-        else:
-            self.uniklaud.mountStorage(storagename, provider, size)
-
-        self.listmounted()
-
-    def unmount(self, storageName):
-        if storageName in self.uniklaud.mountedStorageObjects:
-            self.uniklaud.unmountStorageObject(storageName)
-            print("Storage object unmounted")
-        else:
-            print("Storage object was never mounted")
-
-    def listmounted(self):
-        print(colorama.Fore.MAGENTA + "Main storage drive: " + self.uniklaud.maindrive)
-        print(colorama.Fore.YELLOW + "name -------- provider -------- size[Bytes]")
-        for i in self.uniklaud.mountedStorageObjects:
-            print(colorama.Fore.CYAN + i.storageName + " -------- " + i.provider + " -------- " + i.size_bytes)
-
-    def maindrive(self, storageName):
-        if self.uniklaud.maindrive == "":
-            self.uniklaud.setMainDrive(storageName)
-        else:
-            print(colorama.Fore.YELLOW + "Main drive already set")
-
-    def ls(self):  # TODO
-        for i in self.uniklaud.ls()[0]:
-            print(colorama.Fore.CYAN + i)
-        for i in self.uniklaud.ls()[1]:
-            print(colorama.Fore.BLUE + i)
-
-    def removeFile(self, filename):
-        self.uniklaud.removeFile(filename)
-
-    def upload(self, filepath):
-        self.uniklaud.upload(filepath)
-
-    def download(self, filename, out_path):
-        self.uniklaud.download(filename, out_path)
 
 
 if __name__ == '__main__':

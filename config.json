@@ -1,1 +1,8 @@
-{"mountedStorageObjects": ["{\"provider\": \"googleDrive\", \"storagename\": \"gdrive\", \"size_bytes\": \"150000000000\"}"], "mainDriveName": "gdrive", "dropbox_key": "7isgafmuvcmqz35", "dropbox_secret": "hj9odkregp2ephr"}
+{
+    "mountedStorageObjects": [
+        "{\"provider\": \"googleDrive\", \"storagename\": \"gdrive\", \"size_bytes\": \"150000000000\"}"
+    ],
+    "mainDriveName": "gdrive",
+    "dropbox_key": "7isgafmuvcmqz35",
+    "dropbox_secret": "hj9odkregp2ephr"
+}

@@ -14,7 +14,10 @@ class Folder:
 		self.files[file.name] = file
 
 	def removeFile(self, file):
-		self.files.pop(file.name, None)
+		del self.files[file.name]
+
+	def removeFolder(self, folder):
+		del self.folders[folder.name]
 		
 	def getFolders(self):
 		return self.folders

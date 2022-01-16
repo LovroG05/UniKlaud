@@ -136,7 +136,7 @@ class Splitter:
         self.merge(apathw, out_path + file.name, self.tmppath + "/" + str(randomConvInt) + "/" + manifestFilename)
         shutil.rmtree(apathw)
 
-    def remove_file(self, file):
+    def remove_file(self, folder, file):
         for subfile in file.subFiles:
             for drive in self.uniklaud.mountedStorageObjects:
                 if drive.storageName == subfile["storage"]:
@@ -148,7 +148,7 @@ class Splitter:
             if drive.storageName == maindrive:
                 drive.deleteFile(file.manifestfilename)
 
-        self.uniklaud.pwDir.removeFile(file)
+        folder.removeFile(file)
         self.uniklaud.saveFilesystem()
         
 
