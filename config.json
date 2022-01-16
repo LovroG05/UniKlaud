@@ -2,5 +2,5 @@
     "mountedStorageObjects": [
         "{\"provider\": \"googleDrive\", \"storagename\": \"gdrive\", \"size_bytes\": \"150000000000\"}"
     ],
-    "mainDriveName": "gdrive",
+    "mainDriveName": "gdrive"
 }
