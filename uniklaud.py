@@ -68,17 +68,17 @@ class Uniklaud:
                 self.pwd = ""
                 
                 for i in pathParts:
-                    self.pwDir = self.pwDir.getFolders()[i]
+                    self.pwDir = self.pwDir.getFolder(i)
                     self.pwd = self.pwd + "/" + self.pwDir.name
             else:
                 pathParts = path.split("/")
 
                 for i in pathParts:
                     if self.pwd == "/":
-                        self.pwDir = self.pwDir.getFolders()[i]
+                        self.pwDir = self.pwDir.getFolder(i)
                         self.pwd = self.pwd + self.pwDir.name
                     else:
-                        self.pwDir = self.pwDir.getFolders()[i]
+                        self.pwDir = self.pwDir.getFolder(i)
                         self.pwd = self.pwd + "/" + self.pwDir.name
 
     def ls(self):
@@ -87,6 +87,8 @@ class Uniklaud:
         list.append(self.pwDir.files)
         return list
 
+    def removeFile(self, filename):
+        self.splitter.remove_file(self.pwDir.getFile(filename))
 
     def getMainJson(self):
         if not os.path.isdir(self.tempPath):
@@ -243,6 +245,10 @@ class UniklaudCLI:
                 out_path = command.split(" ")[2]
                 self.download(filename, out_path)
 
+            elif command.startswith("rm"):
+                filename = command.split(" ")[1]
+                self.removeFile(filename)
+
             elif command == "quit":
                 print(colorama.Fore.RED + "Goodbye!")
                 sys.exit()
@@ -284,6 +290,9 @@ class UniklaudCLI:
             print(colorama.Fore.CYAN + i)
         for i in self.uniklaud.ls()[1]:
             print(colorama.Fore.BLUE + i)
+
+    def removeFile(self, filename):
+        self.uniklaud.removeFile(filename)
 
     def upload(self, filepath):
         self.uniklaud.upload(filepath)

@@ -135,6 +135,21 @@ class Splitter:
         print(colorama.Fore.YELLOW + apathw)
         self.merge(apathw, out_path + file.name, self.tmppath + "/" + str(randomConvInt) + "/" + manifestFilename)
         shutil.rmtree(apathw)
+
+    def remove_file(self, file):
+        for subfile in file.subFiles:
+            for drive in self.uniklaud.mountedStorageObjects:
+                if drive.storageName == subfile["storage"]:
+                    print(colorama.Fore.YELLOW + "Deleting file: " + subfile["name"] + " from " + drive.storageName)
+                    drive.deleteFile(subfile["name"])
+
+        maindrive = self.uniklaud.getMainDrive()
+        for drive in self.uniklaud.mountedStorageObjects:
+            if drive.storageName == maindrive:
+                drive.deleteFile(file.manifestfilename)
+
+        self.uniklaud.pwDir.removeFile(file)
+        self.uniklaud.saveFilesystem()
         
 
         
