@@ -172,3 +172,13 @@ class Splitter:
 
         folder.removeFile(file)
         self.uniklaud.saveFilesystem()
+
+        maindrive = self.uniklaud.getMainDrive()
+        for drive in self.uniklaud.mountedStorageObjects:
+            if drive.storageName == maindrive:
+                print(colorama.Fore.GREEN + "Uploading to maindrive")
+                try:
+                    drive.deleteFile("main.json")
+                    drive.uploadFile(self.tmppath + "/main.json", "main.json")
+                except Exception as e:
+                    printError("Error while uploading the main.json file: " + str(e))
