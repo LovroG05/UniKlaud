@@ -23,7 +23,7 @@ class Folder:
 		try:
 			del self.folders[folder.name]
 		except KeyError:
-			pass
+			raise KeyError("Folder not found")
 		
 	def getFolders(self):
 		return self.folders

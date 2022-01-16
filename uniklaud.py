@@ -123,7 +123,7 @@ class Uniklaud:
             printError("File does not exist")
 
     def removeFolder(self, folder):
-        if folder in self.pwDir.getFolders():
+        try:
             fileDict = folder.getFiles()
             folderDict = folder.getFolders()
             
@@ -143,7 +143,7 @@ class Uniklaud:
 
             self.pwDir.removeFolder(folder)
             self.saveFilesystem()
-        else:
+        except KeyError:
             printError("Folder does not exist")
 
     def getMainJson(self):
