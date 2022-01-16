@@ -49,7 +49,7 @@ class Uniklaud:
             fp.write(rootString)
             fp.close()
 
-    def cd(self, path):
+    def cd(self, path):  # TODO ../..
         if path == "..":
             pathArr = self.pwd.split("/")
             pathArr = pathArr[:-1]
@@ -67,21 +67,24 @@ class Uniklaud:
                 self.pwd = ""
                 
                 for i in pathParts:
-                    self.pwDir = self.pwDir.nodes[i]
+                    self.pwDir = self.pwDir.getFolders()[i]
                     self.pwd = self.pwd + "/" + self.pwDir.name
             else:
                 pathParts = path.split("/")
 
                 for i in pathParts:
                     if self.pwd == "/":
-                        self.pwDir = self.pwDir.nodes[i]
+                        self.pwDir = self.pwDir.getFolders()[i]
                         self.pwd = self.pwd + self.pwDir.name
                     else:
-                        self.pwDir = self.pwDir.nodes[i]
+                        self.pwDir = self.pwDir.getFolders()[i]
                         self.pwd = self.pwd + "/" + self.pwDir.name
 
     def ls(self):
-        return self.pwDir.getNodes()
+        list = []
+        list.append(self.pwDir.folders)
+        list.append(self.pwDir.files)
+        return list
 
 
     def getMainJson(self):
@@ -262,8 +265,10 @@ class UniklaudCLI:
             print(colorama.Fore.YELLOW + "Main drive already set")
 
     def ls(self):  # TODO
-        for i in self.uniklaud.ls():
-            print(i)
+        for i in self.uniklaud.ls()[0]:
+            print(colorama.Fore.CYAN + i)
+        for i in self.uniklaud.ls()[1]:
+            print(colorama.Fore.BLUE + i)
 
     def upload(self, filepath):
         self.splitter.split_and_upload(filepath)
