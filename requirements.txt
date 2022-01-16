@@ -1,0 +1,7 @@
+colorama==0.4.3
+dropbox==11.25.0
+filesplit==3.0.2
+PyDrive2==1.10.0
+pyfiglet==0.8.post1
+uuid==1.30
+flatten-json==0.1.13

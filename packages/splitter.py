@@ -31,22 +31,28 @@ class Splitter:
         self.fs.merge(input_dir=in_path, output_file=out_path, manifest_file=manifest_path) # TODO
         # TODO delete temp after merge
 
+    def makeUFname(self, filename, _uuid):
+        l = filename.split("_")
+        return _uuid + "_" + l[-1]
+
+
     def split_and_upload(self, path):
         self.split(path)
         # rename /tmp/fs_manifest.csv to /tmp/fs_ + filename + .csv
         filename = path.split("/")[-1]
-        os.rename(self.tmppath + "/fs_manifest.csv", self.tmppath + "/fs_" + filename + ".csv")
+        _uuid = str(uuid.uuid4())
+        os.rename(self.tmppath + "/fs_manifest.csv", self.tmppath + "/fs_" + _uuid + ".csv")
         # upload /tmp/fs_ + filename + .csv to maindrive
         maindrive = self.uniklaud.getMainDrive()
         for drive in self.uniklaud.mountedStorageObjects:
             if drive.storageName == maindrive:
                 print("Uploading to maindrive")
-                drive.uploadFile(self.tmppath + "/fs_" + filename + ".csv", "fs_" + filename + ".csv")
+                drive.uploadFile(self.tmppath + "/fs_" + _uuid + ".csv", "fs_" + _uuid + ".csv")
 
         # TODO split split files between providers and write it to /tmp/main.json, then upload it to maindrive
 
         lines = []
-        with open(self.tmppath + "/fs_" + filename + ".csv", "r") as f:
+        with open(self.tmppath + "/fs_" + _uuid + ".csv", "r") as f:
             reader = csv.reader(f)
             fields = next(reader)
             for line in reader:
@@ -63,44 +69,16 @@ class Splitter:
             storages.sort(key=lambda x: x.storagePercentage, reverse=False)
             
             print(colorama.Fore.GREEN + "Uploading file: " + file[0] + " to " + storages[0].storageName)
-            storages[0].uploadFile(self.tmppath + "/" + file[0], file[0])
-            fileJsons.append({"name": file[0], "storage": storages[0].storageName, "size": file[1], "encoding": file[2], "header": file[3]})
+            renamed_file = self.makeUFname(file[0], _uuid)
+            os.rename(self.tmppath + "/" + file[0], self.tmppath + "/" + renamed_file)
+            storages[0].uploadFile(self.tmppath + "/" + renamed_file, renamed_file)
+            fileJsons.append({"name": renamed_file, "actualname": file[0], "storage": storages[0].storageName, "size": file[1], "encoding": file[2], "header": file[3]})
             # delete file from /tmp/file[0]
-            filetd = self.tmppath + "/" + file[0]
+            filetd = self.tmppath + "/" + renamed_file
             print(colorama.Fore.YELLOW + "Deleting file: " + filetd)
             os.remove(filetd)
 
-        # if not os.path.exists(self.tmppath + "/main.json"):
-        #     with open(self.tmppath + "/main.json", "w") as f:
-        #         f.write("{}")
-        #         f.close()
-
-        # config = ""
-        # root = {}
-        # with open(self.tmppath + "/main.json", "r") as f:
-        #     config = json.load(f)
-        #     if "root" in config:
-        #         root = config["root"]
-        #     f.close()
-
-        # with open(self.tmppath + "/main.json", "w") as f:
-        #     _json = {}
-        #     _json["manifestname"] = "fs_" + filename + ".csv"
-        #     _json["manifestid"] = str(uuid.uuid4())
-        #     _json["subFiles"] = fileJsons
-        #     stages = self.uniklaud.pwd.split("/")
-        #     stages.pop("root")
-        #     current_dir = {}
-        #     for stage in stages:
-        #         current_dir = current_dir["directories"][stage]
-
-        #     current_dir["files"]
-            
-        #     config["root"] = root
-        #     json.dump(config, f)
-        #     f.close()
-
-        file = File(filename, str(uuid.uuid4()), "fs_" + filename + ".csv", fileJsons)
+        file = File(filename, _uuid, "fs_" + _uuid + ".csv", "fs_" + filename + ".csv", fileJsons)
         self.uniklaud.pwDir.addFile(file)
         self.uniklaud.saveFilesystem()
 
@@ -116,10 +94,11 @@ class Splitter:
         os.mkdir(self.tmppath + "/" + str(randomConvInt))
 
         manifestFilename = file.manifestfilename
+        actualManifestFilename = file.actualmanifestname
         maindrive = self.uniklaud.getMainDrive()
         for drive in self.uniklaud.mountedStorageObjects:
             if drive.storageName == maindrive:
-                drive.downloadFile(manifestFilename, self.tmppath + "/" + str(randomConvInt) + "/" + manifestFilename)
+                drive.downloadFile(manifestFilename, self.tmppath + "/" + str(randomConvInt) + "/" + actualManifestFilename)
 
         subfiles_list = []
         for subfile in file.subFiles:
@@ -129,11 +108,11 @@ class Splitter:
             for drive in self.uniklaud.mountedStorageObjects:
                 if drive.storageName == subfile["storage"]:
                     print(colorama.Fore.GREEN + "Downloading file: " + subfile["name"] + " from " + drive.storageName)
-                    drive.downloadFile(subfile["name"], self.tmppath + "/" + str(randomConvInt) + "/" + subfile["name"])
+                    drive.downloadFile(subfile["name"], self.tmppath + "/" + str(randomConvInt) + "/" + subfile["actualname"])
 
         apathw = self.tmppath + "/" + str(randomConvInt) + "/"
         print(colorama.Fore.YELLOW + apathw)
-        self.merge(apathw, out_path + file.name, self.tmppath + "/" + str(randomConvInt) + "/" + manifestFilename)
+        self.merge(apathw, out_path + file.name, self.tmppath + "/" + str(randomConvInt) + "/" + actualManifestFilename)
         shutil.rmtree(apathw)
 
     def remove_file(self, folder, file):
@@ -150,33 +129,3 @@ class Splitter:
 
         folder.removeFile(file)
         self.uniklaud.saveFilesystem()
-        
-
-        
-
-        
-
-# {
-#   "files": [
-#     {
-#       "manifestname": "",
-#       "manifestid": "",
-#       "subFiles": [
-#         {
-#           "name": "",
-#           "storage": "",
-#           "size": "",
-#           "encoding": "",
-#           "header": ""
-#         },
-#         {
-#           "name": "",
-#           "storage": "",
-#           "size": "",
-#           "encoding": "",
-#           "header": ""
-#         }
-#       ]
-#     }
-#   ]
-# }

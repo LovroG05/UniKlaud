@@ -2,10 +2,11 @@ import json
 
 
 class File:
-	def __init__(self, name, manifestuuid, manifestfilename, subfilesjson):
+	def __init__(self, name, manifestuuid, manifestfilename, actualmn, subfilesjson):
 		self.name = name
 		self.manifestuuid = manifestuuid
 		self.manifestfilename = manifestfilename
+		self.actualmanifestname = actualmn
 		self.subFiles = subfilesjson
 
 	def toJSON(self):
