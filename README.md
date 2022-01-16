@@ -98,7 +98,7 @@ The install instructions for the released version will be released with the vers
     pip3 install -r requirements.txt
     ```
 3. Get your client_secrects.json from [Google Cloud](https://cloud.google.com/) using [this guide](https://medium.com/analytics-vidhya/how-to-connect-google-drive-to-python-using-pydrive-9681b2a14f20) and copy it to the root of the project
-4. Get your dropbox API key and secret using [this guide](https://www.dropbox.com/developers/documentation/python#tutorial) and copy them to config.json replacing the values of *"dropbox_key"* and *"dropbox_secret"*. Remember to enable all permissions under individual scopes.
+4. Get your dropbox API key and secret using [this guide](https://www.dropbox.com/developers/documentation/python#tutorial). Rename ```sample_dotenv``` to ```.env``` and replace the respectable values in it. Remember to enable all permissions under individual scopes.
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 

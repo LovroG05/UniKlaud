@@ -12,6 +12,7 @@ from objects.File import File
 from objects.Folder import Folder
 import pandas as pd
 from packages.MessageUtil import *
+from dotenv import load_dotenv
 
 class Uniklaud:
     def __init__(self, mnt, config):
@@ -171,7 +172,7 @@ class Uniklaud:
                 
             elif provider == "dropbox":
                 try:
-                    self.mountedStorageObjects.append(dropboxprovider.DropboxProvider(provider, storagename, size, self.config["dropbox_key"], self.config["dropbox_secret"]))
+                    self.mountedStorageObjects.append(dropboxprovider.DropboxProvider(provider, storagename, size, os.getenv("DROPBOX_KEY"), os.getenv("DROPBOX_SECRET")))
                     print(colorama.Fore.GREEN + "Storage object mounted")
                 except Exception as e:
                     printError("Error while mounting drive: " + str(e))
@@ -221,7 +222,7 @@ class Uniklaud:
                 printError("Error while mounting drive: " + str(e))
         elif provider == "dropbox":
             try:
-                self.mountStorageObject(dropboxprovider.DropboxProvider(provider, storagename, size, self.config["dropbox_key"], self.config["dropbox_secret"]))
+                self.mountStorageObject(dropboxprovider.DropboxProvider(provider, storagename, size, os.getenv("DROPBOX_KEY"), os.getenv("DROPBOX_SECRET")))
                 print("Storage object mounted")
             except Exception as e:
                 printError("Error while mounting drive: " + str(e))
@@ -382,6 +383,7 @@ class UniklaudCLI:
 
 
 if __name__ == '__main__':
+    load_dotenv()
     configMaster = Configurator("config.json")
     config = configMaster.get_config()
     uniklaud = Uniklaud(config["mountedStorageObjects"], config)

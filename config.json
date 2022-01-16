@@ -3,6 +3,4 @@
         "{\"provider\": \"googleDrive\", \"storagename\": \"gdrive\", \"size_bytes\": \"150000000000\"}"
     ],
     "mainDriveName": "gdrive",
-    "dropbox_key": "<your_dropbox_key>",
-    "dropbox_secret": "<your_dropbox_secret>"
 }
