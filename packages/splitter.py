@@ -6,6 +6,8 @@ import colorama
 import uuid
 import random
 import shutil
+from objects.File import File
+from objects.Folder import Folder
 
 class Splitter:
     def __init__(self, filesize, tmppath, uniklaud):
@@ -68,35 +70,39 @@ class Splitter:
             print(colorama.Fore.YELLOW + "Deleting file: " + filetd)
             os.remove(filetd)
 
-        if not os.path.exists(self.tmppath + "/main.json"):
-            with open(self.tmppath + "/main.json", "w") as f:
-                f.write("{}")
-                f.close()
+        # if not os.path.exists(self.tmppath + "/main.json"):
+        #     with open(self.tmppath + "/main.json", "w") as f:
+        #         f.write("{}")
+        #         f.close()
 
-        config = ""
-        root = {}
-        with open(self.tmppath + "/main.json", "r") as f:
-            config = json.load(f)
-            if "root" in config:
-                root = config["root"]
-            f.close()
+        # config = ""
+        # root = {}
+        # with open(self.tmppath + "/main.json", "r") as f:
+        #     config = json.load(f)
+        #     if "root" in config:
+        #         root = config["root"]
+        #     f.close()
 
-        with open(self.tmppath + "/main.json", "w") as f:
-            _json = {}
-            _json["manifestname"] = "fs_" + filename + ".csv"
-            _json["manifestid"] = str(uuid.uuid4())
-            _json["subFiles"] = fileJsons
-            stages = self.uniklaud.pwd.split("/")
-            stages.pop("root")
-            current_dir = {}
-            for stage in stages:
-                current_dir = current_dir["directories"][stage]
+        # with open(self.tmppath + "/main.json", "w") as f:
+        #     _json = {}
+        #     _json["manifestname"] = "fs_" + filename + ".csv"
+        #     _json["manifestid"] = str(uuid.uuid4())
+        #     _json["subFiles"] = fileJsons
+        #     stages = self.uniklaud.pwd.split("/")
+        #     stages.pop("root")
+        #     current_dir = {}
+        #     for stage in stages:
+        #         current_dir = current_dir["directories"][stage]
 
-            current_dir["files"]
+        #     current_dir["files"]
             
-            config["root"] = root
-            json.dump(config, f)
-            f.close()
+        #     config["root"] = root
+        #     json.dump(config, f)
+        #     f.close()
+
+        file = File(filename, str(uuid.uuid4()), "fs_" + filename + ".csv", fileJsons)
+        self.uniklaud.pwDir.addFile(file)
+        self.uniklaud.saveFilesystem()
 
         maindrive = self.uniklaud.getMainDrive()
         for drive in self.uniklaud.mountedStorageObjects:

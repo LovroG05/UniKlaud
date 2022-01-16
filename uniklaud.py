@@ -1,7 +1,7 @@
 import sys, os
 import storagePlugins.googledrive as googleDrive
-import packages.configurator as configurator
-import packages.splitter as splitter
+from packages.configurator import Configurator
+from packages.splitter import Splitter
 import json
 import pyfiglet
 import colorama
@@ -9,8 +9,8 @@ import storagePlugins.dropboxprovider as dropboxprovider
 import random
 from flatten_json import flatten, unflatten
 import jsonpickle
-import objects.File as File
-import objects.Folder as Folder
+from objects.File import File
+from objects.Folder import Folder
 
 
 class Uniklaud:
@@ -21,6 +21,7 @@ class Uniklaud:
         self.providers = ["googleDrive", "dropbox"]
         self.maindrive = config["mainDriveName"]
         self.config = config
+        self.splitter = Splitter(self.split_size, self.tempPath, self)
         
         self.loadMount(mnt)
         if self.maindrive != "":
@@ -112,7 +113,7 @@ class Uniklaud:
 
     def setMainDrive(self, drive):
         self.maindrive = drive
-        configMaster = configurator.Configurator("config.json")
+        configMaster = Configurator("config.json")
         config = configMaster.get_config()
         config["mainDriveName"] = drive
         configMaster.write_config(config)
@@ -123,7 +124,7 @@ class Uniklaud:
         return self.maindrive
 
     def updateConfigMounted(self, value):
-        configMaster = configurator.Configurator("config.json")
+        configMaster = Configurator("config.json")
         config = configMaster.get_config()
         list = []
         for i in value:
@@ -162,11 +163,16 @@ class Uniklaud:
 
         return allfree
 
+    def upload(self, filepath):
+        self.splitter.split_and_upload(filepath)
+        print(colorama.Fore.GREEN + "File uploaded!")
+        if random.randint(0, 999999) == 0:
+            print(colorama.Fore.BLUE + "POGGERS!")
+
 class UniklaudCLI:
     def __init__(self, uniklaud):
         self.result = pyfiglet.figlet_format("Uniklaud", font="bulbhead")
         self.uniklaud = uniklaud
-        self.splitter = splitter.Splitter(4000000, "tmp", self.uniklaud)
         self.print_header()
         self.print_commands()
         self.mainLoop()
@@ -271,10 +277,7 @@ class UniklaudCLI:
             print(colorama.Fore.BLUE + i)
 
     def upload(self, filepath):
-        self.splitter.split_and_upload(filepath)
-        print(colorama.Fore.GREEN + "File uploaded!")
-        if random.randint(0, 999999) == 0:
-            print(colorama.Fore.BLUE + "POGGERS!")
+        self.uniklaud.upload(filepath)
 
     def download(self, filename, out_path):
         with open("tmp/main.json", "r") as mj:
@@ -294,7 +297,7 @@ class UniklaudCLI:
 
 
 if __name__ == '__main__':
-    configMaster = configurator.Configurator("config.json")
+    configMaster = Configurator("config.json")
     config = configMaster.get_config()
     uniklaud = Uniklaud(config["mountedStorageObjects"], config)
     uniklaudCLI = UniklaudCLI(uniklaud)
