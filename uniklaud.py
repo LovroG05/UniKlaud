@@ -21,21 +21,24 @@ class Uniklaud:
         self.providers = ["googleDrive", "dropbox"]
         self.maindrive = config["mainDriveName"]
         self.config = config
-        self.filesystem = self.loadFilesystem()
-        self.pwd = "/"
-        self.pwDir = None
+        
         self.loadMount(mnt)
         if self.maindrive != "":
             if self.mountedStorageObjects != []:
                 self.getMainJson()
 
-    def loadFilesystem(self):
-        root = {}
-        with open(self.tempPath + "/" + "main.json", "r") as f:
-            root = jsonpickle.decode(f)
-            f.close()
+        self.filesystem = None
+        self.pwd = "/"
+        self.pwDir = None
+        self.filesystem = self.loadFilesystem()
+        self.cd("/")
+        
 
-        self.cd(self.pwd)
+    def loadFilesystem(self):
+        root:Folder = None
+        with open(self.tempPath + "/" + "main.json") as f:
+            root = jsonpickle.decode(f.read())
+            f.close()
 
         return root
 
@@ -78,7 +81,7 @@ class Uniklaud:
                         self.pwd = self.pwd + "/" + self.pwDir.name
 
     def ls(self):
-        pass
+        return self.pwDir.getNodes()
 
 
     def getMainJson(self):
@@ -187,7 +190,7 @@ class UniklaudCLI:
 
     def mainLoop(self):
         while True:
-            command = input(colorama.Fore.GREEN + "Uniklaud> ")
+            command = input(colorama.Fore.GREEN + self.uniklaud.pwd + "> ")
             if command == "help" or command == "0":
                 self.print_header()
                 self.print_commands()
@@ -207,6 +210,12 @@ class UniklaudCLI:
 
             elif command.startswith("ls"):
                 self.ls()
+
+            elif command.startswith("pwd"):
+                print(self.uniklaud.pwd)
+
+            elif command.startswith("cd"):
+                self.uniklaud.cd(command.split(" ")[1])
 
             elif command.startswith("upload"):
                 self.upload(command.split(" ")[1])
@@ -253,14 +262,8 @@ class UniklaudCLI:
             print(colorama.Fore.YELLOW + "Main drive already set")
 
     def ls(self):  # TODO
-        # alljson = ""
-        # with open("tmp/main.json", "r") as f:
-        #     alljson = json.load(f)
-        #     f.close()
-
-        # for i in alljson["files"]:
-        #     print(colorama.Fore.CYAN + i["manifestname"])
-        self.uniklaud.ls()
+        for i in self.uniklaud.ls():
+            print(i)
 
     def upload(self, filepath):
         self.splitter.split_and_upload(filepath)
