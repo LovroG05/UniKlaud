@@ -169,6 +169,15 @@ class Uniklaud:
         if random.randint(0, 999999) == 0:
             print(colorama.Fore.BLUE + "POGGERS!")
 
+    def download(self, filename, out_path):
+        fileToDownload = self.pwDir.getFiles()[filename]
+
+        if fileToDownload != None: 
+            self.splitter.download_and_merge(fileToDownload, out_path)
+            print(colorama.Fore.GREEN + "File downloaded!")
+        else:
+            print(colorama.Fore.RED + "File not found!")
+
 class UniklaudCLI:
     def __init__(self, uniklaud):
         self.result = pyfiglet.figlet_format("Uniklaud", font="bulbhead")
@@ -280,20 +289,7 @@ class UniklaudCLI:
         self.uniklaud.upload(filepath)
 
     def download(self, filename, out_path):
-        with open("tmp/main.json", "r") as mj:
-            mainjson = json.load(mj)
-            mj.close()
-        
-        filejson = ""
-        for i in mainjson["files"]:
-            if i["manifestname"] == filename:
-                filejson = i
-
-        if filejson != "": 
-            self.splitter.download_and_merge(filejson, out_path)
-            print(colorama.Fore.GREEN + "File downloaded!")
-        else:
-            print(colorama.Fore.RED + "File not found!")
+        self.uniklaud.download(filename, out_path)
 
 
 if __name__ == '__main__':

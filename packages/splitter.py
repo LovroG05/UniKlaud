@@ -111,18 +111,18 @@ class Splitter:
                 drive.deleteFile("main.json")
                 drive.uploadFile(self.tmppath + "/main.json", "main.json")
 
-    def download_and_merge(self, manifest_json, out_path):
+    def download_and_merge(self, file, out_path):
         randomConvInt = random.randint(0, 9999)
         os.mkdir(self.tmppath + "/" + str(randomConvInt))
 
-        manifestFilename = manifest_json["manifestname"]
+        manifestFilename = file.manifestfilename
         maindrive = self.uniklaud.getMainDrive()
         for drive in self.uniklaud.mountedStorageObjects:
             if drive.storageName == maindrive:
                 drive.downloadFile(manifestFilename, self.tmppath + "/" + str(randomConvInt) + "/" + manifestFilename)
 
         subfiles_list = []
-        for subfile in manifest_json["subFiles"]:
+        for subfile in file.subFiles:
             subfiles_list.append(subfile)
 
         for subfile in subfiles_list:
@@ -133,7 +133,7 @@ class Splitter:
 
         apathw = self.tmppath + "/" + str(randomConvInt) + "/"
         print(colorama.Fore.YELLOW + apathw)
-        self.merge(apathw, out_path, self.tmppath + "/" + str(randomConvInt) + "/" + manifestFilename)
+        self.merge(apathw, out_path + file.name, self.tmppath + "/" + str(randomConvInt) + "/" + manifestFilename)
         shutil.rmtree(apathw)
         
 
