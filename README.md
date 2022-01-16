@@ -160,6 +160,8 @@ Distributed under the GNU-3.0 License. See `LICENSE` for more information.
 
 LovroG05 - [@LovroG05](https://twitter.com/LovroG05)
 
+chocoearly44 - [@chocoearly44](https://twitter.com/chocoearly44)
+
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
