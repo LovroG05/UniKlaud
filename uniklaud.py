@@ -33,6 +33,16 @@ class Uniklaud:
         self.pwDir = None
         self.filesystem = self.loadFilesystem()
         self.cd("/")
+
+    def uploadMainJson(self):
+        for drive in self.mountedStorageObjects:
+            if drive.storageName == self.maindrive:
+                print(colorama.Fore.GREEN + "Uploading to maindrive")
+                try:
+                    drive.deleteFile("main.json")
+                    drive.uploadFile(self.tempPath + "/main.json", "main.json")
+                except Exception as e:
+                    printError("Error while uploading the main.json file: " + str(e))
         
 
     def loadFilesystem(self):
@@ -56,6 +66,8 @@ class Uniklaud:
                 fp.close()
         except Exception as e:
             printError("Error while saving filesystem: " + str(e))
+
+        self.uploadMainJson()
 
     def cd(self, path):  # TODO ../..
         if path == "..":
@@ -143,6 +155,7 @@ class Uniklaud:
 
             self.pwDir.removeFolder(folder)
             self.saveFilesystem()
+
         except KeyError:
             printError("Folder does not exist")
 

@@ -104,16 +104,6 @@ class Splitter:
         self.uniklaud.pwDir.addFile(file)
         self.uniklaud.saveFilesystem()
 
-        maindrive = self.uniklaud.getMainDrive()
-        for drive in self.uniklaud.mountedStorageObjects:
-            if drive.storageName == maindrive:
-                print(colorama.Fore.GREEN + "Uploading to maindrive")
-                try:
-                    drive.deleteFile("main.json")
-                    drive.uploadFile(self.tmppath + "/main.json", "main.json")
-                except Exception as e:
-                    printError("Error while uploading the main.json file: " + str(e))
-
     def download_and_merge(self, file, out_path):
         randomConvInt = random.randint(0, 9999)
         try:
@@ -172,13 +162,3 @@ class Splitter:
 
         folder.removeFile(file)
         self.uniklaud.saveFilesystem()
-
-        maindrive = self.uniklaud.getMainDrive()
-        for drive in self.uniklaud.mountedStorageObjects:
-            if drive.storageName == maindrive:
-                print(colorama.Fore.GREEN + "Uploading to maindrive")
-                try:
-                    drive.deleteFile("main.json")
-                    drive.uploadFile(self.tmppath + "/main.json", "main.json")
-                except Exception as e:
-                    printError("Error while uploading the main.json file: " + str(e))
