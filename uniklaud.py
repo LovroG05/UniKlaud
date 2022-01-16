@@ -163,7 +163,16 @@ class Uniklaud:
                 os.mkdir(self.tempPath)
             for i in self.mountedStorageObjects:
                 if i.storageName == self.maindrive:
-                    i.downloadFile("main.json", "tmp/main.json")
+                    if "main.json" in i.listFiles():
+                        i.downloadFile("main.json", self.tempPath + "/main.json")
+                        break
+                    else:
+                        printWarning("No main.json found on maindrive")
+                        with open(self.tempPath + "/main.json", 'w') as fp:
+                            rootString = jsonpickle.encode(Folder("root"))
+                            fp.write(rootString)
+                            fp.close()
+                        self.saveFilesystem()
         except Exception as e:
             printError("Error while downloading main.json: " + str(e))
 
