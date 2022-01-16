@@ -74,10 +74,7 @@ class Splitter:
         for file in lines:
             allfree = self.uniklaud.getAllFreeB()
             for storageComponent in self.uniklaud.mountedStorageObjects:
-                storageComponent.updateStoragePercentage(allfree)
-
-            storages = self.uniklaud.mountedStorageObjects
-            storages.sort(key=lambda x: x.storagePercentage, reverse=False)
+                storageComponent.updateStoragePercentage(allfree)/home/lovro
             
             print(colorama.Fore.GREEN + "Uploading file: " + file[0] + " to " + storages[0].storageName)
             renamed_file = self.makeUFname(file[0], _uuid)
