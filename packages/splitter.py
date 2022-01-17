@@ -124,7 +124,7 @@ class Splitter:
         manifestFilename = file.manifestfilename
         actualManifestFilename = file.actualmanifestname
         maindrive = self.uniklaud.getMainDrive()
-        manifestdrive = file.manidestdrive
+        manifestdrive = file.manifestdrive
         for drive in self.uniklaud.mountedStorageObjects:
             if drive.storageName == manifestdrive:
                 try:
@@ -164,7 +164,7 @@ class Splitter:
                         printError("Error while deleting partfile: " + str(e))
 
         maindrive = self.uniklaud.getMainDrive()
-        manifestdrive = file.manidestdrive
+        manifestdrive = file.manifestdrive
         for drive in self.uniklaud.mountedStorageObjects:
             if drive.storageName == manifestdrive:
                 try:

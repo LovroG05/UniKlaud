@@ -116,6 +116,7 @@ celerybeat.pid
 .venv
 env/
 venv/
+/venv
 ENV/
 env.bak/
 venv.bak/
@@ -146,6 +147,7 @@ cython_debug/
 
 # PyCharm
 .idea/
+
 /client_secrets.json
 /mycreds.txt
 /dropbox.txt
