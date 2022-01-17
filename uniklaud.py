@@ -13,6 +13,8 @@ from objects.Folder import Folder
 import pandas as pd
 from packages.MessageUtil import *
 from dotenv import load_dotenv
+from ui.commandline import UniklaudCLI
+from ui.graphical import UniKlaudGUI
 
 class Uniklaud:
     def __init__(self, mnt, config):
@@ -243,6 +245,16 @@ class Uniklaud:
 
         return allfree
 
+    def getAllB(self):
+        allfree = 0 # bytes
+        for storageComponent in self.mountedStorageObjects:
+            allfree = allfree + int(storageComponent.size_bytes)
+
+        return allfree
+
+    def getUsedPercentage(self):
+        return abs(1 - (self.getAllB() / self.getAllFreeB()))
+
     def upload(self, filepath):
         try:
             self.splitter.split_and_upload(filepath)
@@ -268,123 +280,10 @@ class Uniklaud:
         else:
             printError("File not found!")
 
-class UniklaudCLI:
-    def __init__(self, uniklaud):
-        self.result = pyfiglet.figlet_format("Uniklaud", font="bulbhead")
-        self.uniklaud = uniklaud
-        self.commands = [
-            {"command": "help", "arguments":""},
-            {"command": "mount", "arguments":"<provider> <storagename> <size_bytes>"},
-            {"command": "unmount", "arguments":"<storagename>"},
-            {"command": "maindrive", "arguments":"<storageName>"},
-            {"command": "ls", "arguments":""},
-            {"command": "pwd", "arguments":""},
-            {"command": "cd", "arguments":"<path>"},
-            {"command": "upload", "arguments":"<file path>"},
-            {"command": "mkdir", "arguments":"<folderName>"},
-            {"command": "download", "arguments":"<fileName> <output/file/path>"},
-            {"command": "rm", "arguments":"<fileName>"},
-            {"command": "rmdir", "arguments":"<folderName>"},
-            {"command": "exit", "arguments":""},
-            {"command": "clear", "arguments":""}
-        ]
-        self.print_header()
-        self.print_commands()
-        self.mainLoop()
-        
-
-    def print_header(self):
-        print(colorama.Fore.GREEN + self.result)
-        print("A RAID-like file system for free online storage providers")
-        print("\n\n\n")
-
-    def print_commands(self):
-        print("Available commands:")
-        print(pd.DataFrame(self.commands))
-        print("\n\n\n")
-
-    def mainLoop(self):
-        while True:
-            command = input(colorama.Fore.GREEN + self.uniklaud.pwd + "> ")
-            if command == "help" or command == "0":
-                self.print_header()
-                self.print_commands()
-
-            elif command.startswith("mount"):
-                args = command.split(" ")
-                storagename = args[1]
-                provider = args[2]
-                size = args[3]
-                usednames = self.uniklaud.getUsedStorageNames()
-                if provider in usednames:
-                    print(colorama.Fore.RED + "Storage name already used!")
-                else:
-                    self.uniklaud.mountStorage(storagename, provider, size)
-                    print(colorama.Fore.GREEN + "Storage object mounted")
-
-            elif command.startswith("unmount"):
-                printWarning("Note that this will make any files on the storage unrecoverable!")
-                if input("Are you sure? (y/n)") == "y":
-                    storagename = command.split(" ")[1]
-                    self.uniklaud.unmountStorageObject(storagename)
-                    print(colorama.Fore.GREEN + "Storage object unmounted")
-
-            elif command.startswith("listmounted"):
-                print(colorama.Fore.CYAN + "Main storage drive: " + self.uniklaud.maindrive)
-                print(pd.DataFrame([[i.storageName, i.provider, i.size_bytes] for i in self.uniklaud.mountedStorageObjects]))
-
-            elif command.startswith("maindrive"):
-                storageName = command.split(" ")[1]
-                if self.uniklaud.maindrive == "":
-                    self.uniklaud.setMainDrive(storageName)
-                else:
-                    print(colorama.Fore.YELLOW + "Main drive already set")
-
-            elif command.startswith("ls"):
-                for i in self.uniklaud.ls()[0]:
-                    print(colorama.Fore.CYAN + i)
-                for i in self.uniklaud.ls()[1]:
-                    print(colorama.Fore.BLUE + i)
-
-            elif command.startswith("cd"):
-                self.uniklaud.cd(command.split(" ")[1])
-
-            elif command.startswith("pwd"):
-                print(self.uniklaud.pwd)
-
-            elif command.startswith("upload"):
-                self.uniklaud.upload(command.split(" ")[1])
-
-            elif command.startswith("download"):
-                filename = command.split(" ")[1]
-                out_path = command.split(" ")[2]
-                self.uniklaud.download(filename, out_path)
-            
-            elif command.startswith("mkdir"):
-                foldername = command.split(" ")[1]
-                self.uniklaud.createFolder(foldername)
-
-            elif command.startswith("rmdir"):
-                foldername = command.split(" ")[1]
-                self.uniklaud.removeFolder(self.uniklaud.pwDir.getFolder(foldername))
-
-            elif command.startswith("rm"):
-                filename = command.split(" ")[1]
-                rmFolder = self.uniklaud.pwDir
-
-                self.uniklaud.removeFile(rmFolder, rmFolder.getFile(filename))
-
-            elif command == "quit" or command == "exit":
-                print(colorama.Fore.RED + "Goodbye!")
-                sys.exit()
-            
-            elif command == "clear":
-                os.system('clear')
-
 
 if __name__ == '__main__':
     load_dotenv()
-    if os.readenv("UNIKLAUD_API_KEY") == "":
+    if os.getenv("UNIKLAUD_API_KEY") == "":
         printError("Dropbox API key and secret not set!")
     if not os.path.isfile("client_secrets.json"):
         printError("client_secrets.json not found!")
@@ -394,4 +293,5 @@ if __name__ == '__main__':
     configMaster = Configurator("config.json")
     config = configMaster.get_config()
     uniklaud = Uniklaud(config["mountedStorageObjects"], config)
-    uniklaudCLI = UniklaudCLI(uniklaud)
+    #uniklaudCLI = UniklaudCLI(uniklaud)
+    uniklaudGUI = UniKlaudGUI(uniklaud)

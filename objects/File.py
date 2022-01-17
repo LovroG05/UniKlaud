@@ -9,5 +9,8 @@ class File:
 		self.actualmanifestname = actualmn
 		self.subFiles = subfilesjson
 
+	def isFolder(self):
+		return False
+		
 	def toJSON(self):
 		return json.dumps(self, default=lambda o: o.__dict__, sort_keys=True, indent=4)

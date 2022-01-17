@@ -42,6 +42,9 @@ class Folder:
 			return self.files[fileName]
 		except KeyError:
 			raise KeyError("File not found")
+
+	def isFolder(self):
+		return True
 		
 	def toJSON(self):
 		return json.dumps(self, default=lambda o: o.__dict__, sort_keys=True, indent=4)
