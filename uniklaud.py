@@ -124,14 +124,12 @@ class Uniklaud:
         
         if folderName not in folders:
             self.pwDir.addFolder(Folder(folderName))
+            self.saveFilesystem()
         else:
             printError("Folder with that name already exists")
 
     def removeFile(self, folder, file):
-        if file not in folder.getFiles():
-            self.splitter.remove_file(folder, file)
-        else:
-            printError("File does not exist")
+        self.splitter.remove_file(folder, file)
 
     def removeFolder(self, folder):
         try:
@@ -329,36 +327,47 @@ class UniklaudCLI:
     def mainLoop(self):
         while True:
             command = input(colorama.Fore.GREEN + self.uniklaud.pwd + "> ")
-            if command == "help" or command == "0":
+            if command.startswith("help"):
                 self.print_header()
                 self.print_commands()
 
             elif command.startswith("mount"):
                 args = command.split(" ")
-                storagename = args[1]
-                provider = args[2]
-                size = args[3]
-                usednames = self.uniklaud.getUsedStorageNames()
-                if provider in usednames:
-                    print(colorama.Fore.RED + "Storage name already used!")
+                if len(args) == 4:
+                    storagename = args[1]
+                    provider = args[2]
+                    size = args[3]
+                    usednames = self.uniklaud.getUsedStorageNames()
+                    if provider in usednames:
+                        print(colorama.Fore.RED + "Storage name already used!")
+                    else:
+                        self.uniklaud.mountStorage(storagename, provider, size)
+                        print(colorama.Fore.GREEN + "Storage object mounted")
                 else:
-                    self.uniklaud.mountStorage(storagename, provider, size)
-                    print(colorama.Fore.GREEN + "Storage object mounted")
+                    printWarning("Invalid number of arguments")
 
             elif command.startswith("unmount"):
-                printWarning("Note that this will make any files on the storage unrecoverable!")
-                if input("Are you sure? (y/n)") == "y":
-                    storagename = command.split(" ")[1]
-                    self.uniklaud.unmountStorageObject(storagename)
-                    print(colorama.Fore.GREEN + "Storage object unmounted")
+                args = command.split(" ")
+                if len(args) == 2:
+                    printWarning("Note that this will make any files on the storage unrecoverable!")
+                    if input("Are you sure? (y/n)") == "y":
+                        storagename = args[1]
+                        self.uniklaud.unmountStorageObject(storagename)
+                        print(colorama.Fore.GREEN + "Storage object unmounted")
+                else:
+                    printWarning("Invalid number of arguments")
 
             elif command.startswith("listmounted"):
                 print(colorama.Fore.CYAN + "Main storage drive: " + self.uniklaud.maindrive)
                 print(pd.DataFrame([[i.storageName, i.provider, i.size_bytes] for i in self.uniklaud.mountedStorageObjects]))
 
             elif command.startswith("maindrive"):
-                storageName = command.split(" ")[1]
-                self.uniklaud.setMainDrive(storageName)
+                args = command.split(" ")
+                if len(args) == 2:
+                    storageName = args[1]
+                    self.uniklaud.setMainDrive(storageName)
+                else:
+                    printWarning("Invalid number of arguments")
 
             elif command.startswith("ls"):
                 for i in self.uniklaud.ls()[0]:
@@ -367,32 +376,62 @@ class UniklaudCLI:
                     print(colorama.Fore.BLUE + i)
 
             elif command.startswith("cd"):
-                self.uniklaud.cd(command.split(" ")[1])
+                args = command.split(" ")
+                if len(args) == 2:
+                    self.uniklaud.cd(args[1])
+                else:
+                    printWarning("Invalid number of arguments")
 
             elif command.startswith("pwd"):
                 print(self.uniklaud.pwd)
 
             elif command.startswith("upload"):
-                self.uniklaud.upload(command.split(" ")[1])
+                args = command.split(" ")
+                if len(args) == 2:
+                    if os.path.isfile(args[1]):
+                        self.uniklaud.upload(args[1])
+                    else:
+                        printInfo("File does not exist")
+                else:
+                    printWarning("Invalid number of arguments")
 
             elif command.startswith("download"):
-                filename = command.split(" ")[1]
-                out_path = command.split(" ")[2]
-                self.uniklaud.download(filename, out_path)
+                args = command.split(" ")
+                if len(args) == 3:
+                    filename = args[1]
+                    out_path = args[2]
+                    self.uniklaud.download(filename, out_path)
+                else:
+                    printWarning("Invalid number of arguments")
             
             elif command.startswith("mkdir"):
-                foldername = command.split(" ")[1]
-                self.uniklaud.createFolder(foldername)
+                args = command.split(" ")
+                if len(args) == 2:
+                    foldername = args[1]
+                    self.uniklaud.createFolder(foldername)
+                else:
+                    printWarning("Invalid number of arguments")
 
             elif command.startswith("rmdir"):
-                foldername = command.split(" ")[1]
-                self.uniklaud.removeFolder(self.uniklaud.pwDir.getFolder(foldername))
+                args = command.split(" ")
+                if len(args) == 2:
+                    foldername = args[1]
+                    self.uniklaud.removeFolder(self.uniklaud.pwDir.getFolder(foldername))
+                else:
+                    printWarning("Invalid number of arguments")
 
             elif command.startswith("rm"):
-                filename = command.split(" ")[1]
-                rmFolder = self.uniklaud.pwDir
+                args = command.split(" ")
+                if len(args) == 2:
+                    filename = args[1]
+                    rmFolder = self.uniklaud.pwDir
 
-                self.uniklaud.removeFile(rmFolder, rmFolder.getFile(filename))
+                    if filename in rmFolder.getFiles():
+                        self.uniklaud.removeFile(rmFolder, rmFolder.getFile(filename))
+                    else:
+                        printWarning("File does not exist")
+                else:
+                    printWarning("Invalid number of arguments")
 
             elif command == "quit" or command == "exit":
                 print(colorama.Fore.RED + "Goodbye!")
