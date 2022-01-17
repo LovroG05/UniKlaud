@@ -1,6 +1,1 @@
-{
-    "mountedStorageObjects": [
-        "{\"provider\": \"googleDrive\", \"storagename\": \"gdrive\", \"size_bytes\": \"150000000000\"}"
-    ],
-    "mainDriveName": "gdrive"
-}
+{"mountedStorageObjects": ["{\"provider\": \"googleDrive\", \"storagename\": \"gdrive\", \"size_bytes\": \"150000000000\"}", "{\"provider\": \"dropbox\", \"storagename\": \"dbx\", \"size_bytes\": \"2000000000\"}"], "mainDriveName": "gdrive"}
