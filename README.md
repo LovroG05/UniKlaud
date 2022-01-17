@@ -1,45 +1,38 @@
 <div id="top"></div>
-<!--
-*** Thanks for checking out the Best-README-Template. If you have a suggestion
-*** that would make this better, please fork the repo and create a pull request
-*** or simply open an issue with the tag "enhancement".
-*** Don't forget to give the project a star!
-*** Thanks again! Now go create something AMAZING! :D
--->
 
-
-
-<!-- PROJECT SHIELDS -->
-<!--
-*** I'm using markdown "reference style" links for readability.
-*** Reference links are enclosed in brackets [ ] instead of parentheses ( ).
-*** See the bottom of this document for the declaration of the reference variables
-*** for contributors-url, forks-url, etc. This is an optional, concise syntax you may use.
-*** https://www.markdownguide.org/basic-syntax/#reference-style-links
--->
-[![Contributors][contributors-shield]][contributors-url]
-[![Forks][forks-shield]][forks-url]
-[![Stargazers][stars-shield]][stars-url]
-[![Issues][issues-shield]][issues-url]
-[![MIT License][license-shield]][license-url]
-
-
-
-<!-- PROJECT LOGO -->
-<br />
 <div align="center">
-  <a href="https://github.com/LovroG05/UniKlaud">
-    <img src="images/logo.png" alt="Logo" width="80" height="80">
-  </a>
 
-<h3 align="center">UniKlaud</h3>
+  [![Contributors][contributors-shield]][contributors-url]
+  [![Forks][forks-shield]][forks-url]
+  [![Stargazers][stars-shield]][stars-url]
+  [![Issues][issues-shield]][issues-url]
+  [![MIT License][license-shield]][license-url]
 
-  <p align="center">
-    Run your clouds in RAID
-    <br />
 </div>
 
+</br>
 
+<div align="center">
+  <a href="https://github.com/LovroG05/UniKlaud">
+    <img src="images/logo.png" alt="Logo" width="180" height="180">
+  </a>
+
+  <h1 align="center">UniKlaud</h1>
+
+  <h3 align="center">
+    Run your clouds in RAID
+  </h3>
+
+  </br>
+</div>
+
+<div align="center">
+
+  ![][linux-shield]
+  ![][windows-shield]
+  ![][macos-shield]
+
+</div>
 
 <!-- TABLE OF CONTENTS -->
 <details>
@@ -70,7 +63,7 @@
 <!-- ABOUT THE PROJECT -->
 ## About The Project
 
-The goal of this project is to be able to join multiple online storages from diffrent or same providers and create one big storage space with a simulated filesystem
+The goal of this project is to be able to join multiple online storages from different or same providers and create one big storage space with a simulated filesystem
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
@@ -157,19 +150,12 @@ Distributed under the GNU-3.0 License. See `LICENSE` for more information.
 
 <!-- CONTACT -->
 ## Contact
-
 LovroG05 - [@LovroG05](https://twitter.com/LovroG05)
 
 chocoearly44 - [@chocoearly44](https://twitter.com/chocoearly44)
 
-
 <p align="right">(<a href="#top">back to top</a>)</p>
 
-
-
-
-<!-- MARKDOWN LINKS & IMAGES -->
-<!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
 [contributors-shield]: https://img.shields.io/github/contributors/LovroG05/UniKlaud.svg?style=for-the-badge
 [contributors-url]: https://github.com/github_username/repo_name/graphs/contributors
 [forks-shield]: https://img.shields.io/github/forks/LovroG05/UniKlaud.svg?style=for-the-badge
@@ -179,4 +165,8 @@ chocoearly44 - [@chocoearly44](https://twitter.com/chocoearly44)
 [issues-shield]: https://img.shields.io/github/issues/LovroG05/UniKlaud.svg?style=for-the-badge
 [issues-url]: https://github.com/LovroG05/UniKlaud/issues
 [license-shield]: https://img.shields.io/github/license/LovroG05/UniKlaud.svg?style=for-the-badge
-[license-url]: https://github.com/LovroG05/UniKlaud/blob/master/LICENSE.txt
+[license-url]: https://github.com/LovroG05/UniKlaud/blob/master/LICENSE
+
+[windows-shield]: https://img.shields.io/badge/Windows-Not%20yet-red?style=for-the-badge&logo=windows
+[linux-shield]: https://img.shields.io/badge/Linux-Yes-green?style=for-the-badge&logo=linux
+[macos-shield]: https://img.shields.io/badge/MacOs-Untested-orange?style=for-the-badge&logo=apple
