@@ -6,7 +6,7 @@ class File:
 		self.name = name
 		self.manifestuuid = manifestuuid
 		self.manifestfilename = manifestfilename
-		self.manidestdrive = manifestdrive
+		self.manifestdrive = manifestdrive
 		self.actualmanifestname = actualmn
 		self.subFiles = subfilesjson
 
