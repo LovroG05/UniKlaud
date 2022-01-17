@@ -182,13 +182,15 @@ class Uniklaud:
                 printError("Unknown storage provider")
 
     def setMainDrive(self, drive):
-        self.maindrive = drive
-        configMaster = Configurator("config.json")
-        config = configMaster.get_config()
-        config["mainDriveName"] = drive
-        configMaster.write_config(config)
-        print("Main drive set to " + drive)
-        printWarning("DO NOT ATTEMPT TO CHANGE IT!")
+        printWarning("Attempting to change it may cause files to be unrecoverable")
+        answer = input("Are you sure you want to change the main drive? (y/n)")
+        if answer == "y":
+            self.maindrive = drive
+            configMaster = Configurator("config.json")
+            config = configMaster.get_config()
+            config["mainDriveName"] = drive
+            configMaster.write_config(config)
+            print("Main drive set to " + drive)
 
     def getMainDrive(self):
         return self.maindrive

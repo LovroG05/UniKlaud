@@ -71,10 +71,7 @@ class UniklaudCLI:
 
             elif command.startswith("maindrive"):
                 storageName = command.split(" ")[1]
-                if self.uniklaud.maindrive == "":
-                    self.uniklaud.setMainDrive(storageName)
-                else:
-                    print(colorama.Fore.YELLOW + "Main drive already set")
+                self.uniklaud.setMainDrive(storageName)
 
             elif command.startswith("ls"):
                 for i in self.uniklaud.ls()[0]:
