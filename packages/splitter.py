@@ -100,7 +100,7 @@ class Splitter:
             except Exception as e:
                 printError("Error while deleting file: " + str(e))
 
-        file = File(filename, _uuid, "fs_" + _uuid + ".csv", "fs_" + filename + ".csv", fileJsons)
+        file = File(filename, _uuid, "fs_" + _uuid + ".csv", "fs_" + filename + ".csv", fileJsons, self.uniklaud.maindrive)
         self.uniklaud.pwDir.addFile(file)
         self.uniklaud.saveFilesystem()
 
@@ -124,8 +124,9 @@ class Splitter:
         manifestFilename = file.manifestfilename
         actualManifestFilename = file.actualmanifestname
         maindrive = self.uniklaud.getMainDrive()
+        manifestdrive = file.manidestdrive
         for drive in self.uniklaud.mountedStorageObjects:
-            if drive.storageName == maindrive:
+            if drive.storageName == manifestdrive:
                 try:
                     drive.downloadFile(manifestFilename, self.tmppath + "/" + str(randomConvInt) + "/" + actualManifestFilename)
                 except Exception as e:
@@ -163,8 +164,9 @@ class Splitter:
                         printError("Error while deleting partfile: " + str(e))
 
         maindrive = self.uniklaud.getMainDrive()
+        manifestdrive = file.manidestdrive
         for drive in self.uniklaud.mountedStorageObjects:
-            if drive.storageName == maindrive:
+            if drive.storageName == manifestdrive:
                 try:
                     drive.deleteFile(file.manifestfilename)
                 except Exception as e:

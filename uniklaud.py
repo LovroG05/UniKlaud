@@ -180,13 +180,16 @@ class Uniklaud:
                 printError("Unknown storage provider")
 
     def setMainDrive(self, drive):
-        self.maindrive = drive
-        configMaster = Configurator("config.json")
-        config = configMaster.get_config()
-        config["mainDriveName"] = drive
-        configMaster.write_config(config)
-        print("Main drive set to " + drive)
-        printWarning("DO NOT ATTEMPT TO CHANGE IT!")
+        printWarning("Attempting to change it may cause files to be unrecoverable")
+        answer = input("Are you sure you want to change the main drive? (y/n)")
+        if answer == "y":
+            self.maindrive = drive
+            configMaster = Configurator("config.json")
+            config = configMaster.get_config()
+            config["mainDriveName"] = drive
+            configMaster.write_config(config)
+            print("Main drive set to " + drive)
+        
 
     def getMainDrive(self):
         return self.maindrive
@@ -335,10 +338,7 @@ class UniklaudCLI:
 
             elif command.startswith("maindrive"):
                 storageName = command.split(" ")[1]
-                if self.uniklaud.maindrive == "":
-                    self.uniklaud.setMainDrive(storageName)
-                else:
-                    print(colorama.Fore.YELLOW + "Main drive already set")
+                self.uniklaud.setMainDrive(storageName)
 
             elif command.startswith("ls"):
                 for i in self.uniklaud.ls()[0]:
@@ -384,7 +384,7 @@ class UniklaudCLI:
 
 if __name__ == '__main__':
     load_dotenv()
-    if os.readenv("UNIKLAUD_API_KEY") == "":
+    if os.getenv("UNIKLAUD_API_KEY") == "":
         printError("Dropbox API key and secret not set!")
     if not os.path.isfile("client_secrets.json"):
         printError("client_secrets.json not found!")
