@@ -164,7 +164,7 @@ class Uniklaud:
                 os.mkdir(self.tempPath)
             for i in self.mountedStorageObjects:
                 if i.storageName == self.maindrive:
-                    if "main.json" in [j["title"] for j in i.getFiles()]:
+                    if "main.json" in [j["title"] for j in i.listFiles()]:
                         i.downloadFile("main.json", self.tempPath + "/main.json")
                         break
                     else:
