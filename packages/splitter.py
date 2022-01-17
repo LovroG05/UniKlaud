@@ -74,7 +74,10 @@ class Splitter:
         for file in lines:
             allfree = self.uniklaud.getAllFreeB()
             for storageComponent in self.uniklaud.mountedStorageObjects:
-                storageComponent.updateStoragePercentage(allfree)/home/lovro
+                storageComponent.updateStoragePercentage(allfree)
+
+            storages = self.uniklaud.mountedStorageObjects
+            storages.sort(key=lambda x: x.storagePercentage, reverse=False)
             
             print(colorama.Fore.GREEN + "Uploading file: " + file[0] + " to " + storages[0].storageName)
             renamed_file = self.makeUFname(file[0], _uuid)
@@ -97,9 +100,19 @@ class Splitter:
             except Exception as e:
                 printError("Error while deleting file: " + str(e))
 
-        file = File(filename, _uuid, "fs_" + _uuid + ".csv", "fs_" + filename + ".csv", fileJsons)
+        file = File(filename, _uuid, "fs_" + _uuid + ".csv", "fs_" + filename + ".csv", fileJsons, self.uniklaud.maindrive)
         self.uniklaud.pwDir.addFile(file)
         self.uniklaud.saveFilesystem()
+
+        maindrive = self.uniklaud.getMainDrive()
+        for drive in self.uniklaud.mountedStorageObjects:
+            if drive.storageName == maindrive:
+                print(colorama.Fore.GREEN + "Uploading to maindrive")
+                try:
+                    drive.deleteFile("main.json")
+                    drive.uploadFile(self.tmppath + "/main.json", "main.json")
+                except Exception as e:
+                    printError("Error while uploading the main.json file: " + str(e))
 
     def download_and_merge(self, file, out_path):
         randomConvInt = random.randint(0, 9999)
@@ -111,8 +124,9 @@ class Splitter:
         manifestFilename = file.manifestfilename
         actualManifestFilename = file.actualmanifestname
         maindrive = self.uniklaud.getMainDrive()
+        manifestdrive = file.manifestdrive
         for drive in self.uniklaud.mountedStorageObjects:
-            if drive.storageName == maindrive:
+            if drive.storageName == manifestdrive:
                 try:
                     drive.downloadFile(manifestFilename, self.tmppath + "/" + str(randomConvInt) + "/" + actualManifestFilename)
                 except Exception as e:
@@ -150,8 +164,9 @@ class Splitter:
                         printError("Error while deleting partfile: " + str(e))
 
         maindrive = self.uniklaud.getMainDrive()
+        manifestdrive = file.manifestdrive
         for drive in self.uniklaud.mountedStorageObjects:
-            if drive.storageName == maindrive:
+            if drive.storageName == manifestdrive:
                 try:
                     drive.deleteFile(file.manifestfilename)
                 except Exception as e:
