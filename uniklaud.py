@@ -384,6 +384,13 @@ class UniklaudCLI:
 
 if __name__ == '__main__':
     load_dotenv()
+    if os.readenv("UNIKLAUD_API_KEY") == "":
+        printError("Dropbox API key and secret not set!")
+    if not os.path.isfile("client_secrets.json"):
+        printError("client_secrets.json not found!")
+    if not os.path.isfile("config.json"):
+        printError("config.json not found!")
+        exit(1)
     configMaster = Configurator("config.json")
     config = configMaster.get_config()
     uniklaud = Uniklaud(config["mountedStorageObjects"], config)

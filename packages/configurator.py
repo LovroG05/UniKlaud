@@ -18,8 +18,6 @@ class Configurator:
             config = {
                     "mountedStorageObjects": [],
                     "mainDriveName": "",
-                    "dropbox_key": "7isgafmuvcmqz35",
-                    "dropbox_secret": "hj9odkregp2ephr"
                 }
             with open(self.config_file, "w") as f:
                 json.dump(config, f)
