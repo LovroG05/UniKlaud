@@ -295,5 +295,5 @@ if __name__ == '__main__':
     configMaster = Configurator("config.json")
     config = configMaster.get_config()
     uniklaud = Uniklaud(config["mountedStorageObjects"], config)
-    #uniklaudCLI = UniklaudCLI(uniklaud)
-    uniklaudGUI = UniKlaudGUI(uniklaud)
+    uniklaudCLI = UniklaudCLI(uniklaud)
+    #uniklaudGUI = UniKlaudGUI(uniklaud)
