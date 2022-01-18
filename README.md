@@ -157,7 +157,7 @@ chocoearly44 - [@chocoearly44](https://twitter.com/chocoearly44)
 <p align="right">(<a href="#top">back to top</a>)</p>
 
 [contributors-shield]: https://img.shields.io/github/contributors/LovroG05/UniKlaud.svg?style=for-the-badge
-[contributors-url]: https://github.com/github_username/repo_name/graphs/contributors
+[contributors-url]: https://github.com/LovroG05/UniKlaud/graphs/contributors
 [forks-shield]: https://img.shields.io/github/forks/LovroG05/UniKlaud.svg?style=for-the-badge
 [forks-url]: https://github.com/LovroG05/UniKlaud/network/members
 [stars-shield]: https://img.shields.io/github/stars/LovroG05/UniKlaud.svg?style=for-the-badge
