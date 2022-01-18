@@ -117,6 +117,8 @@ class UniKlaudGUI:
             texts.append(item.text(0))
             item = item.parent()
         path = "/".join(reversed(texts))
+        if "." in path:
+            path = path.remove(path.split("/")[-1], "")
         return path[1:]
 
     def makeDirectory(self):
