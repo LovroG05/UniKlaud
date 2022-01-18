@@ -47,6 +47,7 @@ class UniKlaudWindow(QtWidgets.QMainWindow):
             node.addChild(child)
 
     def updateFiles(self, filesys):
+        self.ui.treeWidget.clear()
         rootNode = QtWidgets.QTreeWidgetItem()
         rootNode.setText(0, "/")
         rootNode.setIcon(0, QtGui.QIcon(":/1/folder.png"))
@@ -71,6 +72,9 @@ class UniKlaudWindow(QtWidgets.QMainWindow):
     def updateUsedPercentage(self, usedPercentage):
         self.ui.progressBar.setValue(usedPercentage)
 
+    def getSelectedItem(self):
+        return self.ui.treeWidget.selectedItems()
+
 class UniKlaudGUI:
     def __init__(self, uniklaud):
         self.uniklaud = uniklaud
@@ -82,11 +86,12 @@ class UniKlaudGUI:
         print(self.uniklaud.getUsedPercentage()*100)
         self.window.updateFiles(self.uniklaud.filesystem)
         self.window.ui.pushButton_5.clicked.connect(self.addDrive)
+        self.window.ui.pushButton_6.clicked.connect(self.makeDirectory)
         self.window.show()
         sys.exit(self.app.exec_())
 
 
-    def bytesto(self, bytes, to, bsize=1024): 
+    def bytesto(self, bytes, to, bsize=1024):
         a = {'KiloBytes' : 1, 'MegaBytes': 2, 'GigaBytes' : 3}
         r = float(bytes)
         return bytes / (bsize ** a[to])
@@ -104,3 +109,26 @@ class UniKlaudGUI:
             self.uniklaud.mountStorage(drivename, driveprovider, size)
             self.window.updateDrives(self.uniklaud.mountedStorageObjects)
             self.window.updateUsedPercentage(self.uniklaud.getUsedPercentage()*100)
+
+    def buildPwd(self):
+        item = self.window.getSelectedItem()[0]
+        texts = []
+        while item is not None:
+            texts.append(item.text(0))
+            item = item.parent()
+        path = "/".join(reversed(texts))
+        return path[1:]
+
+    def makeDirectory(self):
+        if len(self.window.getSelectedItem()) == 0:
+            pwd = "/"
+        else:
+            pwd = self.buildPwd()
+
+        self.uniklaud.cd(pwd)
+        
+        text, ok = QtWidgets.QInputDialog.getText(self.window, "Make Directory", "Enter directory name:")
+        if ok:
+            dirname = text
+            self.uniklaud.createFolder(dirname)
+            self.window.updateFiles(self.uniklaud.filesystem)
