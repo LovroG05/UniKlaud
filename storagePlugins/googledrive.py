@@ -19,7 +19,7 @@ class GoogleDriveProvider(StorageProvider.StorageProvider):
 
     def getAuth(self, storagename):
         gauth = GoogleAuth()
-        gauth.LoadCredentialsFile(storagename + ".txt")
+        gauth.LoadCredentialsFile(storagename + ".json")
         if gauth.credentials is None:
             # Authenticate if they're not there
             gauth.LocalWebserverAuth()
@@ -29,7 +29,7 @@ class GoogleDriveProvider(StorageProvider.StorageProvider):
                 gauth.Refresh()
             except Exception as e:
                 try:
-                    os.remove(storagename + ".txt")
+                    os.remove(storagename + ".json")
                 except Exception as e:
                     printWarning("Error while removing google credentials file: " + str(e))
                 gauth.Authorize()
@@ -37,7 +37,7 @@ class GoogleDriveProvider(StorageProvider.StorageProvider):
             # Initialize the saved creds
             gauth.Authorize()
         # Save the current credentials to a file
-        gauth.SaveCredentialsFile(storagename + ".txt")
+        gauth.SaveCredentialsFile(storagename + ".json")
         return gauth
 
     def initialize(self, auth):

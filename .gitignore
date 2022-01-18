@@ -116,6 +116,7 @@ celerybeat.pid
 .venv
 env/
 venv/
+/venv
 ENV/
 env.bak/
 venv.bak/
@@ -146,6 +147,7 @@ cython_debug/
 
 # PyCharm
 .idea/
+
 /client_secrets.json
 /mycreds.txt
 /dropbox.txt
@@ -157,6 +159,8 @@ cython_debug/
 
 /config.json
 
-/gdrive.txt
-/gdrive2.txt
+/gdrive.json
+/gdrive2.json
+/dbx.txt
 /raubarji_zetor.mp3
+/log.txt

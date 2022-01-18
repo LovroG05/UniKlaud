@@ -1,10 +1,10 @@
-import jsonpickle
-from objects.File import File
-from objects.Folder import Folder
+from storagePlugins.googledrive import GoogleDriveProvider
 
-root = Folder("root")
-root.addFolder(Folder("td"))
-root.getFolders()["td"].addFolder(Folder("sub2"))
-root.getFolders()["td"].addFile(File("testfile", "manifestuuid", "manifestfilename", "subfilesjson"))
+gdrive = GoogleDriveProvider("gdrive", "GoogleDrive", 150000000000)
 
-print(jsonpickle.encode(root))
+file_list = gdrive.listFiles()
+for file1 in file_list:
+    print('title: {}, id: {}'.format(file1['title'], file1['id']))
+
+if "main.json" in [i["title"] for i in file_list]:
+    print("true")

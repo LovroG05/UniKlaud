@@ -36,6 +36,16 @@ class Uniklaud:
         self.pwDir = None
         self.filesystem = self.loadFilesystem()
         self.cd("/")
+
+    def uploadMainJson(self):
+        for drive in self.mountedStorageObjects:
+            if drive.storageName == self.maindrive:
+                print(colorama.Fore.GREEN + "Uploading to maindrive")
+                try:
+                    drive.deleteFile("main.json")
+                    drive.uploadFile(self.tempPath + "/main.json", "main.json")
+                except Exception as e:
+                    printError("Error while uploading the main.json file: " + str(e))
         
 
     def loadFilesystem(self):
@@ -59,6 +69,8 @@ class Uniklaud:
                 fp.close()
         except Exception as e:
             printError("Error while saving filesystem: " + str(e))
+
+        self.uploadMainJson()
 
     def cd(self, path):  # TODO ../..
         if path == "..":
@@ -110,23 +122,19 @@ class Uniklaud:
         return list
         
     def createFolder(self, folderName):
-        folders = []
-        for i in self.pwDir.getFolders():
-            folders.append(i.name)
+        folders = self.pwDir.getFolders().keys()
         
         if folderName not in folders:
             self.pwDir.addFolder(Folder(folderName))
+            self.saveFilesystem()
         else:
             printError("Folder with that name already exists")
 
     def removeFile(self, folder, file):
-        if file not in folder.getFiles():
-            self.splitter.remove_file(folder, file)
-        else:
-            printError("File does not exist")
+        self.splitter.remove_file(folder, file)
 
     def removeFolder(self, folder):
-        if folder in self.pwDir.getFolders():
+        try:
             fileDict = folder.getFiles()
             folderDict = folder.getFolders()
             
@@ -146,7 +154,8 @@ class Uniklaud:
 
             self.pwDir.removeFolder(folder)
             self.saveFilesystem()
-        else:
+
+        except KeyError:
             printError("Folder does not exist")
 
     def getMainJson(self):
@@ -155,7 +164,16 @@ class Uniklaud:
                 os.mkdir(self.tempPath)
             for i in self.mountedStorageObjects:
                 if i.storageName == self.maindrive:
-                    i.downloadFile("main.json", "tmp/main.json")
+                    if "main.json" in [j["title"] for j in i.listFiles()]:
+                        i.downloadFile("main.json", self.tempPath + "/main.json")
+                        break
+                    else:
+                        printWarning("No main.json found on maindrive")
+                        with open(self.tempPath + "/main.json", 'w') as fp:
+                            rootString = jsonpickle.encode(Folder("root"))
+                            fp.write(rootString)
+                            fp.close()
+                        self.saveFilesystem()
         except Exception as e:
             printError("Error while downloading main.json: " + str(e))
 

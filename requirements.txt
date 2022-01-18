@@ -5,6 +5,10 @@ charset-normalizer==2.0.10
 click==7.1.2
 colorama==0.4.3
 cryptography==36.0.1
+<<<<<<< HEAD
+=======
+cx-Freeze==6.9
+>>>>>>> master
 dropbox==11.25.0
 filesplit==3.0.2
 flatten-json==0.1.13
@@ -15,6 +19,10 @@ google-auth-httplib2==0.1.0
 googleapis-common-protos==1.54.0
 httplib2==0.20.2
 idna==3.3
+<<<<<<< HEAD
+=======
+importlib-metadata==4.10.1
+>>>>>>> master
 jsonpickle==2.1.0
 numpy==1.22.1
 oauth2client==4.1.3
@@ -42,7 +50,15 @@ qt5-tools==5.15.2.1.2
 requests==2.27.1
 rsa==4.8
 six==1.16.0
+<<<<<<< HEAD
+=======
+SocksiPy-branch==1.1
+>>>>>>> master
 stone==3.2.1
 uritemplate==4.1.1
 urllib3==1.26.8
 uuid==1.30
+<<<<<<< HEAD
+=======
+zipp==3.7.0
+>>>>>>> master
