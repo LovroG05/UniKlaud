@@ -87,6 +87,8 @@ class UniKlaudGUI:
         self.window.updateFiles(self.uniklaud.filesystem)
         self.window.ui.pushButton_5.clicked.connect(self.addDrive)
         self.window.ui.pushButton_6.clicked.connect(self.makeDirectory)
+        self.window.ui.pushButton_3.clicked.connect(self.delete)
+        self.window.ui.pushButton_2.clicked.connect(self.uploadFile)
         self.window.show()
         sys.exit(self.app.exec_())
 
@@ -118,7 +120,7 @@ class UniKlaudGUI:
             item = item.parent()
         path = "/".join(reversed(texts))
         if "." in path:
-            path = path.remove(path.split("/")[-1], "")
+            path = path.replace(path.split("/")[-1], "")
         return path[1:]
 
     def makeDirectory(self):
@@ -133,4 +135,42 @@ class UniKlaudGUI:
         if ok:
             dirname = text
             self.uniklaud.createFolder(dirname)
+            self.window.updateFiles(self.uniklaud.filesystem)
+
+    def delete(self):
+        if len(self.window.getSelectedItem()) == 0:
+            pwd = "/"
+        else:
+            pwd = self.buildPwd()
+
+        self.uniklaud.cd(pwd)
+
+        pwddir = self.uniklaud.pwDir
+        self.uniklaud.cd("..")
+
+
+        if "." in self.window.getSelectedItem()[0].text(0):
+            filename = self.window.getSelectedItem()[0].text(0)
+
+            if filename in self.uniklaud.pwDir.getFiles():
+                self.uniklaud.removeFile(self.uniklaud.pwDir, self.uniklaud.pwDir.getFile(filename))
+
+        else:
+            self.uniklaud.removeFolder(pwddir)
+
+        self.window.updateFiles(self.uniklaud.filesystem)
+
+    def uploadFile(self):
+        if len(self.window.getSelectedItem()) == 0:
+            pwd = "/"
+        else:
+            pwd = self.buildPwd()
+
+        self.uniklaud.cd(pwd)
+
+        options = QtWidgets.QFileDialog.Options()
+        options |= QtWidgets.QFileDialog.DontUseNativeDialog
+        fileName, _ = QtWidgets.QFileDialog.getOpenFileName(self.window,"Select File", "","All Files (*)", options=options)
+        if fileName:
+            self.uniklaud.upload(fileName)
             self.window.updateFiles(self.uniklaud.filesystem)
