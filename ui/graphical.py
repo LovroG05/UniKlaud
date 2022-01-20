@@ -89,6 +89,7 @@ class UniKlaudGUI:
         self.window.ui.pushButton_6.clicked.connect(self.makeDirectory)
         self.window.ui.pushButton_3.clicked.connect(self.delete)
         self.window.ui.pushButton_2.clicked.connect(self.uploadFile)
+        self.window.ui.pushButton.clicked.connect(self.downloadFile)
         self.window.show()
         sys.exit(self.app.exec_())
 
@@ -121,7 +122,16 @@ class UniKlaudGUI:
         path = "/".join(reversed(texts))
         if "." in path:
             path = path.replace(path.split("/")[-1], "")
-        return path[1:]
+
+        if path[1:] == "":
+            path = "/"
+        else:
+            path = path[1:]
+
+        if path[-1] == "/":
+            path = path[:-1]
+
+        return path
 
     def makeDirectory(self):
         if len(self.window.getSelectedItem()) == 0:
@@ -129,6 +139,7 @@ class UniKlaudGUI:
         else:
             pwd = self.buildPwd()
 
+        print(pwd)
         self.uniklaud.cd(pwd)
         
         text, ok = QtWidgets.QInputDialog.getText(self.window, "Make Directory", "Enter directory name:")
@@ -174,3 +185,22 @@ class UniKlaudGUI:
         if fileName:
             self.uniklaud.upload(fileName)
             self.window.updateFiles(self.uniklaud.filesystem)
+
+    def downloadFile(self):
+        if len(self.window.getSelectedItem()) == 0:
+            pwd = "/"
+        else:
+            pwd = self.buildPwd()
+
+        print(pwd)
+        self.uniklaud.cd(pwd)
+
+        if "." in self.window.getSelectedItem()[0].text(0):
+            filename = self.window.getSelectedItem()[0].text(0)
+
+            options = QtWidgets.QFileDialog.Options()
+            options |= QtWidgets.QFileDialog.DontUseNativeDialog
+            path = QtWidgets.QFileDialog.getExistingDirectory(self.window, "Select Directory", "", options=options)
+            if path:
+                self.uniklaud.download(filename, path + "/")
+        
